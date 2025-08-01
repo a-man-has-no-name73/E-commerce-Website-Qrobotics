@@ -43,6 +43,13 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     });
+    cookieStore.set("qrobotics_admin_id", String(admin.admin_id), {
+      httpOnly: true,
+      path: "/",
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7,
+    });
     cookieStore.set("qrobotics_role", "admin", {
       httpOnly: true,
       path: "/",
@@ -50,8 +57,6 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     });
-
-    console.log("Admin login successful:");
 
     return NextResponse.json({
       user: {

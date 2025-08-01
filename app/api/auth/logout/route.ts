@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
     // List of cookies to clear
     const cookiesToClear = [
       "qrobotics_user",
+      "qrobotics_user_id",
+      "qrobotics_admin_id",
       "qrobotics_role", 
       "qrobotics_session",
       "qrobotics_admin_session",

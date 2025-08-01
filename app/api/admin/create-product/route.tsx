@@ -10,7 +10,6 @@ const productSchema = productZ.object({
   name: productZ.string().min(1),
   description: productZ.string().optional(),
   price: productZ.number(),
-  created_by: productZ.number(),
   images: productZ
     .array(
       productZ.object({
@@ -25,9 +24,13 @@ const productSchema = productZ.object({
 export async function POST(req: Request) {
   const cookieStore = await getCookies();
   const role = cookieStore.get("qrobotics_role")?.value;
+  const adminId = cookieStore.get("qrobotics_admin_id")?.value;
 
   if (role !== "admin")
     return ProductResponse.json({ error: "Unauthorized" }, { status: 403 });
+    
+  if (!adminId)
+    return ProductResponse.json({ error: "Admin ID not found in session" }, { status: 403 });
 
   const body = await req.json();
   const parsed = productSchema.safeParse(body);
@@ -44,9 +47,10 @@ export async function POST(req: Request) {
     name,
     description,
     price,
-    created_by,
     images = [],
   } = parsed.data;
+
+  const created_by = parseInt(adminId);
 
   const { data: productData, error: productError } = await supabaseServer
     .from("products")
