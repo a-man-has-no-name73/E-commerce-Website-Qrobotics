@@ -28,9 +28,12 @@ export async function POST(req: Request) {
 
   if (role !== "admin")
     return ProductResponse.json({ error: "Unauthorized" }, { status: 403 });
-    
+
   if (!adminId)
-    return ProductResponse.json({ error: "Admin ID not found in session" }, { status: 403 });
+    return ProductResponse.json(
+      { error: "Admin ID not found in session" },
+      { status: 403 }
+    );
 
   const body = await req.json();
   const parsed = productSchema.safeParse(body);
@@ -42,13 +45,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const {
-    category_id,
-    name,
-    description,
-    price,
-    images = [],
-  } = parsed.data;
+  const { category_id, name, description, price, images = [] } = parsed.data;
 
   const created_by = parseInt(adminId);
 

@@ -58,10 +58,10 @@ export function ProductGrid({ products }: ProductGridProps) {
                 <h3 className="font-semibold mb-2">{product.name}</h3>
                 <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl font-bold text-blue-600">${product.price.toLocaleString()}</span>
+                  <span className="text-xl font-bold text-blue-600">৳{product.price.toLocaleString()}</span>
                   {product.originalPrice && (
                     <span className="text-sm text-gray-500 line-through">
-                      ${product.originalPrice.toLocaleString()}
+                      ৳{product.originalPrice.toLocaleString()}
                     </span>
                   )}
                 </div>

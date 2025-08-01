@@ -154,7 +154,7 @@ export function AdminDashboard() {
                           <div>
                             <h3 className="font-semibold">{product.name}</h3>
                             <p className="text-sm text-gray-600">{product.category}</p>
-                            <p className="font-medium">${product.price.toLocaleString()}</p>
+                            <p className="font-medium">৳{product.price.toLocaleString()}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

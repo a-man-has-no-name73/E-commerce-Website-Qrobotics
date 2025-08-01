@@ -366,7 +366,7 @@ export function ProductManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (৳)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -465,7 +465,7 @@ export function ProductManagement() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-price">Price ($)</Label>
+                  <Label htmlFor="edit-price">Price (৳)</Label>
                   <Input
                     id="edit-price"
                     type="number"
@@ -590,7 +590,7 @@ export function ProductManagement() {
                 </p>
                 <div className="flex gap-4 mt-2">
                   <p className="text-sm text-gray-500">
-                    Price: ${product.price}
+                    Price: ৳{product.price}
                   </p>
                   <p className="text-sm text-gray-500">
                     Available: {product.is_available ? "Yes" : "No"}

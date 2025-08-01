@@ -43,9 +43,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
 
         <div className="flex items-center gap-4 mb-4">
-          <span className="text-3xl font-bold text-blue-600">${product.price.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-blue-600">৳{product.price.toLocaleString()}</span>
           {product.originalPrice && (
-            <span className="text-xl text-gray-500 line-through">${product.originalPrice.toLocaleString()}</span>
+            <span className="text-xl text-gray-500 line-through">৳{product.originalPrice.toLocaleString()}</span>
           )}
         </div>
 

@@ -28,7 +28,7 @@ export function OrderSummary() {
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                 </div>
               </div>
-              <span className="font-medium">${(item.price * item.quantity).toLocaleString()}</span>
+              <span className="font-medium">৳{(item.price * item.quantity).toLocaleString()}</span>
             </div>
           ))}
         </div>

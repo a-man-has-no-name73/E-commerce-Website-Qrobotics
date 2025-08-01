@@ -18,7 +18,7 @@ export function CartItems() {
 
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-blue-600 font-medium">${item.price.toLocaleString()}</p>
+                <p className="text-blue-600 font-medium">৳{item.price.toLocaleString()}</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export function CartItems() {
               </div>
 
               <div className="text-right">
-                <p className="font-semibold">${(item.price * item.quantity).toLocaleString()}</p>
+                <p className="font-semibold">৳{(item.price * item.quantity).toLocaleString()}</p>
                 <Button
                   variant="ghost"
                   size="sm"
