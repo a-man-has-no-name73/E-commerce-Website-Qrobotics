@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useCart } from "@/components/cart/cart-context"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCart } from "@/components/cart/cart-context";
 
 export function OrderSummary() {
-  const { items, total } = useCart()
-  const shipping = total > 1000 ? 0 : 50
-  const finalTotal = total + shipping
+  const { items, total } = useCart();
+  const shipping = total > 1000 ? 0 : 50;
+  const finalTotal = total + shipping;
 
   return (
     <Card>
@@ -28,7 +28,9 @@ export function OrderSummary() {
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                 </div>
               </div>
-              <span className="font-medium">৳{(item.price * item.quantity).toLocaleString()}</span>
+              <span className="font-medium">
+                ৳{(item.price * item.quantity).toLocaleString()}
+              </span>
             </div>
           ))}
         </div>
@@ -51,5 +53,5 @@ export function OrderSummary() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

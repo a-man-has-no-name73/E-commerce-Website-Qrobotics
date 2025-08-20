@@ -1,101 +1,154 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { ProductGrid } from "@/components/products/product-grid"
-import { ProductFilters } from "@/components/products/product-filters"
-import { mockProducts } from "@/lib/mock-data"
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { ProductGrid } from "@/components/products/product-grid";
+import { ProductFilters } from "@/components/products/product-filters";
+import { useProducts } from "@/hooks/use-products";
 
 export default function ProductsPage() {
-  const searchParams = useSearchParams()
-  const categoryParam = searchParams.get("category") || ""
-  const searchParam = searchParams.get("search") || ""
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category") || "";
+  const searchParam = searchParams.get("search") || "";
 
   const [filters, setFilters] = useState({
     category: categoryParam,
     priceRange: "",
     inStock: false,
     search: searchParam,
-  })
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts)
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12;
+
+  const { products, pagination, loading, error } = useProducts({
+    category: filters.category || undefined,
+    search: filters.search || undefined,
+    page: currentPage,
+    limit: productsPerPage,
+    available: true, // Only show available products for customers
+  });
 
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
       category: categoryParam,
       search: searchParam,
-    }))
-  }, [categoryParam, searchParam])
+    }));
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [categoryParam, searchParam]);
 
-  useEffect(() => {
-    let filtered = mockProducts
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
 
-    // Search filter
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase()
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm) ||
-          product.description.toLowerCase().includes(searchTerm) ||
-          product.category.toLowerCase().includes(searchTerm),
-      )
-    }
-
-    // Category filter - fix the mapping
-    if (filters.category) {
-      const categoryMap = {
-        manufacturing: "Manufacturing",
-        warehouse: "Warehouse",
-        office: "Office",
-        healthcare: "Healthcare",
-      }
-      const mappedCategory = categoryMap[filters.category] || filters.category
-      filtered = filtered.filter((product) => product.category === mappedCategory)
-    }
-
+  // Filter products locally for price range and stock status
+  const filteredProducts = products.filter((product) => {
     // Price range filter
     if (filters.priceRange) {
-      const [min, max] = filters.priceRange.split("-").map(Number)
-      filtered = filtered.filter((product) => product.price >= min && product.price <= max)
+      const [min, max] = filters.priceRange.split("-").map(Number);
+      if (max && (product.price < min || product.price > max)) return false;
+      if (!max && product.price < min) return false;
     }
 
     // Stock filter
-    if (filters.inStock) {
-      filtered = filtered.filter((product) => product.inStock)
-    }
+    if (filters.inStock && !product.inStock) return false;
 
-    setFilteredProducts(filtered)
-  }, [filters])
+    return true;
+  });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div>
       <Header />
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-4">
-              {filters.search ? `Search Results for "${filters.search}"` : "Products"}
-            </h1>
-            <p className="text-gray-600">
-              {filters.search
-                ? `Found ${filteredProducts.length} products matching your search.`
-                : "Discover our complete range of workplace robotics solutions and automation systems."}
-            </p>
-          </div>
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <aside className="lg:w-64">
+            <ProductFilters
+              filters={filters}
+              onFiltersChange={handleFilterChange}
+            />
+          </aside>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-1">
-              <ProductFilters filters={filters} onFiltersChange={setFilters} />
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Products</h1>
+              <p className="text-gray-600">
+                {pagination
+                  ? `${pagination.total} products found`
+                  : "Loading..."}
+              </p>
             </div>
-            <div className="lg:col-span-3">
-              <ProductGrid products={filteredProducts} />
-            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <div className="bg-gray-300 h-48 rounded-lg mb-4"></div>
+                    <div className="bg-gray-300 h-4 rounded mb-2"></div>
+                    <div className="bg-gray-300 h-4 rounded w-2/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600">Error loading products: {error}</p>
+              </div>
+            ) : (
+              <>
+                <ProductGrid products={filteredProducts} />
+
+                {/* Pagination */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="flex justify-center mt-8 gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 border rounded disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+
+                    {Array.from(
+                      { length: pagination.totalPages },
+                      (_, i) => i + 1
+                    ).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 border rounded ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, pagination.totalPages)
+                        )
+                      }
+                      disabled={currentPage === pagination.totalPages}
+                      className="px-4 py-2 border rounded disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </main>
       <Footer />
     </div>
-  )
+  );
 }
