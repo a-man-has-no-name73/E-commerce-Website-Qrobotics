@@ -61,12 +61,14 @@ export function CategoryManagement() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  
+
   // Loading states for operations
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isUpdatingCategory, setIsUpdatingCategory] = useState(false);
-  const [isDeletingCategory, setIsDeletingCategory] = useState<number | null>(null);
-  
+  const [isDeletingCategory, setIsDeletingCategory] = useState<number | null>(
+    null
+  );
+
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
   const [editCategory, setEditCategory] = useState({
     name: "",
@@ -150,7 +152,7 @@ export function CategoryManagement() {
     }
 
     setIsCreatingCategory(true);
-    
+
     toast({
       title: "Creating category...",
       description: "Setting up new category and uploading images",
@@ -364,13 +366,13 @@ export function CategoryManagement() {
 
   const handleDeleteCategory = async (category: Category) => {
     setIsDeletingCategory(category.category_id);
-    
+
     try {
       toast({
         title: "Deleting Category",
         description: `Deleting "${category.name}"...`,
       });
-      
+
       // First check if category has products
       const productsResponse = await fetch(
         `/api/products?categoryId=${category.category_id}`
@@ -480,8 +482,8 @@ export function CategoryManagement() {
                 maxImages={3}
                 initialImages={newImages}
               />
-              <Button 
-                onClick={handleAddCategory} 
+              <Button
+                onClick={handleAddCategory}
                 disabled={isCreatingCategory}
                 className="w-full"
               >
@@ -608,7 +610,9 @@ export function CategoryManagement() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeletingCategory === category.category_id}>
+                        <AlertDialogCancel
+                          disabled={isDeletingCategory === category.category_id}
+                        >
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction

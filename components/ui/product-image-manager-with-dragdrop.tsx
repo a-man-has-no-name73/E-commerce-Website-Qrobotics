@@ -4,10 +4,21 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Upload, Image as ImageIcon, Star, GripVertical } from "lucide-react";
+import {
+  X,
+  Upload,
+  Image as ImageIcon,
+  Star,
+  GripVertical,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
 interface UploadedImage {
   url: string;
@@ -28,7 +39,9 @@ interface DatabaseImage {
 interface ProductImageManagerProps {
   onImagesChange?: (images: UploadedImage[]) => void;
   onImageDelete?: (imageId: number) => void;
-  onImageReorder?: (imageOrder: { imageId: number; serialNumber: number }[]) => void;
+  onImageReorder?: (
+    imageOrder: { imageId: number; serialNumber: number }[]
+  ) => void;
   maxImages?: number;
   initialImages?: UploadedImage[];
   existingImages?: DatabaseImage[];
@@ -48,7 +61,9 @@ export function ProductImageManagerWithDragDrop({
 }: ProductImageManagerProps) {
   const { toast } = useToast();
   const [newImages, setNewImages] = useState<UploadedImage[]>(initialImages);
-  const [localExistingImages, setLocalExistingImages] = useState<DatabaseImage[]>(
+  const [localExistingImages, setLocalExistingImages] = useState<
+    DatabaseImage[]
+  >(
     existingImages.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0))
   );
   const [uploading, setUploading] = useState(false);
@@ -57,7 +72,9 @@ export function ProductImageManagerWithDragDrop({
   // Update local existing images when prop changes
   useEffect(() => {
     setLocalExistingImages(
-      existingImages.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0))
+      existingImages.sort(
+        (a, b) => (a.serialNumber || 0) - (b.serialNumber || 0)
+      )
     );
   }, [existingImages]);
 
@@ -123,7 +140,7 @@ export function ProductImageManagerWithDragDrop({
 
   const removeNewImage = async (index: number) => {
     const image = newImages[index];
-    
+
     try {
       // Delete from Cloudinary
       await fetch("/api/delete-image", {
@@ -133,7 +150,7 @@ export function ProductImageManagerWithDragDrop({
       });
 
       setNewImages((prev) => prev.filter((_, i) => i !== index));
-      
+
       toast({
         title: "Success",
         description: "Image removed successfully",
@@ -161,7 +178,9 @@ export function ProductImageManagerWithDragDrop({
 
       if (!response.ok) throw new Error("Failed to delete image");
 
-      setLocalExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+      setLocalExistingImages((prev) =>
+        prev.filter((img) => img.id !== imageId)
+      );
       onImageDelete?.(imageId);
 
       toast({
@@ -208,7 +227,7 @@ export function ProductImageManagerWithDragDrop({
       if (!response.ok) throw new Error("Failed to reorder images");
 
       const data = await response.json();
-      
+
       // Update with server response
       setLocalExistingImages(data.images || items);
       onImageReorder?.(imageOrder);
@@ -219,8 +238,12 @@ export function ProductImageManagerWithDragDrop({
       });
     } catch (error) {
       // Revert on error
-      setLocalExistingImages(existingImages.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0)));
-      
+      setLocalExistingImages(
+        existingImages.sort(
+          (a, b) => (a.serialNumber || 0) - (b.serialNumber || 0)
+        )
+      );
+
       toast({
         title: "Error",
         description: "Failed to reorder images",
@@ -231,8 +254,16 @@ export function ProductImageManagerWithDragDrop({
     }
   };
 
-  const ImageCard = ({ image, index, isDragging = false }: { image: DatabaseImage; index: number; isDragging?: boolean }) => (
-    <div className={`group relative ${isDragging ? 'opacity-50' : ''}`}>
+  const ImageCard = ({
+    image,
+    index,
+    isDragging = false,
+  }: {
+    image: DatabaseImage;
+    index: number;
+    isDragging?: boolean;
+  }) => (
+    <div className={`group relative ${isDragging ? "opacity-50" : ""}`}>
       <div className="aspect-square relative border rounded-lg overflow-hidden bg-gray-50">
         <Image
           src={image.url}
@@ -266,9 +297,7 @@ export function ProductImageManagerWithDragDrop({
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <p className="text-xs text-gray-500 mt-1 truncate">
-        {image.fileName}
-      </p>
+      <p className="text-xs text-gray-500 mt-1 truncate">{image.fileName}</p>
       <p className="text-xs text-blue-500">
         Serial: {image.serialNumber || index + 1}
       </p>
@@ -279,7 +308,9 @@ export function ProductImageManagerWithDragDrop({
     <div className="space-y-4">
       {/* Upload Area */}
       <div>
-        <Label htmlFor="image-upload-input">Product Images ({totalImages}/{maxImages})</Label>
+        <Label htmlFor="image-upload-input">
+          Product Images ({totalImages}/{maxImages})
+        </Label>
         <div className="mt-2">
           <Input
             id="image-upload-input"
@@ -293,7 +324,9 @@ export function ProductImageManagerWithDragDrop({
           <Button
             type="button"
             variant="outline"
-            onClick={() => document.getElementById("image-upload-input")?.click()}
+            onClick={() =>
+              document.getElementById("image-upload-input")?.click()
+            }
             disabled={uploading || totalImages >= maxImages}
             className="w-full"
           >
@@ -307,7 +340,8 @@ export function ProductImageManagerWithDragDrop({
       {enableDragDrop && localExistingImages.length > 1 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-700">
-            <strong>Drag and drop</strong> to reorder images. The first image will be the primary image.
+            <strong>Drag and drop</strong> to reorder images. The first image
+            will be the primary image.
           </p>
         </div>
       )}

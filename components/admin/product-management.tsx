@@ -86,11 +86,13 @@ export function ProductManagement() {
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
-  
+
   // Loading states for operations
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
-  const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(
+    null
+  );
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
@@ -165,7 +167,7 @@ export function ProductManagement() {
     }
 
     setIsCreatingProduct(true);
-    
+
     // Show initial feedback
     toast({
       title: "Creating product...",
@@ -176,8 +178,8 @@ export function ProductManagement() {
       name: newProduct.name.trim(),
       price: parseFloat(newProduct.price),
       category_id:
-        newProduct.category_id && 
-        newProduct.category_id !== "none" && 
+        newProduct.category_id &&
+        newProduct.category_id !== "none" &&
         newProduct.category_id !== ""
           ? parseInt(newProduct.category_id)
           : null,
@@ -291,7 +293,7 @@ export function ProductManagement() {
     }
 
     setIsUpdatingProduct(true);
-    
+
     // Show initial feedback
     toast({
       title: "Updating product...",
@@ -302,8 +304,8 @@ export function ProductManagement() {
       // Validate inputs before sending
       const priceValue = parseFloat(editProduct.price);
       const categoryIdValue =
-        editProduct.category_id && 
-        editProduct.category_id !== "none" && 
+        editProduct.category_id &&
+        editProduct.category_id !== "none" &&
         editProduct.category_id !== ""
           ? parseInt(editProduct.category_id)
           : null;
@@ -416,7 +418,7 @@ export function ProductManagement() {
 
   const handleDeleteProduct = async (product: Product) => {
     setIsDeletingProduct(product.product_id);
-    
+
     toast({
       title: "Deleting product...",
       description: "Removing product and associated images",
@@ -544,8 +546,8 @@ export function ProductManagement() {
                   initialImages={newProduct.images}
                 />
               </div>
-              <Button 
-                onClick={handleAddProduct} 
+              <Button
+                onClick={handleAddProduct}
                 disabled={isCreatingProduct}
                 className="w-full"
               >
@@ -684,32 +686,63 @@ export function ProductManagement() {
                       };
                     });
                   }}
-                  onImageReorder={(imageOrder: { imageId: number; serialNumber: number }[]) => {
+                  onImageReorder={(
+                    imageOrder: { imageId: number; serialNumber: number }[]
+                  ) => {
                     // Only update if there's actually a change to prevent infinite loops
                     if (editingProduct?.images) {
-                      const currentOrder = editingProduct.images.map(img => ({ id: img.id, serial: img.serialNumber || 0 }));
-                      const newOrder = imageOrder.map((order: { imageId: number; serialNumber: number }) => ({ id: order.imageId, serial: order.serialNumber }));
-                      
-                      // Check if order actually changed
-                      const hasChanged = currentOrder.some((current, index) => 
-                        current.id !== newOrder[index]?.id || current.serial !== newOrder[index]?.serial
+                      const currentOrder = editingProduct.images.map((img) => ({
+                        id: img.id,
+                        serial: img.serialNumber || 0,
+                      }));
+                      const newOrder = imageOrder.map(
+                        (order: { imageId: number; serialNumber: number }) => ({
+                          id: order.imageId,
+                          serial: order.serialNumber,
+                        })
                       );
-                      
+
+                      // Check if order actually changed
+                      const hasChanged = currentOrder.some(
+                        (current, index) =>
+                          current.id !== newOrder[index]?.id ||
+                          current.serial !== newOrder[index]?.serial
+                      );
+
                       if (hasChanged) {
-                        const reorderedImages = imageOrder.map((order: { imageId: number; serialNumber: number }) => {
-                          const img = editingProduct.images?.find(i => i.id === order.imageId);
-                          return img ? { ...img, serialNumber: order.serialNumber, isPrimary: order.serialNumber === 1 } : null;
-                        }).filter(Boolean);
-                        
-                        setEditingProduct(prev => prev ? { ...prev, images: reorderedImages as any } : prev);
+                        const reorderedImages = imageOrder
+                          .map(
+                            (order: {
+                              imageId: number;
+                              serialNumber: number;
+                            }) => {
+                              const img = editingProduct.images?.find(
+                                (i) => i.id === order.imageId
+                              );
+                              return img
+                                ? {
+                                    ...img,
+                                    serialNumber: order.serialNumber,
+                                    isPrimary: order.serialNumber === 1,
+                                  }
+                                : null;
+                            }
+                          )
+                          .filter(Boolean);
+
+                        setEditingProduct((prev) =>
+                          prev
+                            ? { ...prev, images: reorderedImages as any }
+                            : prev
+                        );
                       }
                     }
                   }}
                   maxImages={5}
                 />
               </div>
-              <Button 
-                onClick={handleEditProduct} 
+              <Button
+                onClick={handleEditProduct}
                 disabled={isUpdatingProduct}
                 className="w-full"
               >

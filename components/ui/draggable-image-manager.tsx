@@ -4,10 +4,21 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Upload, Image as ImageIcon, Star, GripVertical } from "lucide-react";
+import {
+  X,
+  Upload,
+  Image as ImageIcon,
+  Star,
+  GripVertical,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
 interface UploadedImage {
   url: string;
@@ -28,7 +39,9 @@ interface DatabaseImage {
 interface DraggableImageManagerProps {
   onImagesChange?: (images: UploadedImage[]) => void;
   onImageDelete?: (imageId: number) => void;
-  onImageReorder?: (imageOrder: { imageId: number; serialNumber: number }[]) => void;
+  onImageReorder?: (
+    imageOrder: { imageId: number; serialNumber: number }[]
+  ) => void;
   maxImages?: number;
   initialImages?: UploadedImage[];
   existingImages?: DatabaseImage[];
@@ -48,7 +61,9 @@ export function DraggableImageManager({
 }: DraggableImageManagerProps) {
   const { toast } = useToast();
   const [newImages, setNewImages] = useState<UploadedImage[]>(initialImages);
-  const [localExistingImages, setLocalExistingImages] = useState<DatabaseImage[]>(
+  const [localExistingImages, setLocalExistingImages] = useState<
+    DatabaseImage[]
+  >(
     existingImages.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0))
   );
   const [uploading, setUploading] = useState(false);
@@ -56,7 +71,9 @@ export function DraggableImageManager({
 
   // Update local existing images when prop changes - use useMemo to prevent unnecessary updates
   const sortedExistingImages = useMemo(() => {
-    return existingImages.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0));
+    return existingImages.sort(
+      (a, b) => (a.serialNumber || 0) - (b.serialNumber || 0)
+    );
   }, [existingImages]);
 
   useEffect(() => {
@@ -64,11 +81,14 @@ export function DraggableImageManager({
   }, [sortedExistingImages]);
 
   // Memoize the onImagesChange callback to prevent infinite loops
-  const handleImagesChange = useCallback((images: UploadedImage[]) => {
-    if (onImagesChange) {
-      onImagesChange(images);
-    }
-  }, [onImagesChange]);
+  const handleImagesChange = useCallback(
+    (images: UploadedImage[]) => {
+      if (onImagesChange) {
+        onImagesChange(images);
+      }
+    },
+    [onImagesChange]
+  );
 
   // Update parent when new images change - but only call if the function exists
   useEffect(() => {
@@ -132,7 +152,7 @@ export function DraggableImageManager({
 
   const removeNewImage = async (index: number) => {
     const image = newImages[index];
-    
+
     try {
       // Delete from Cloudinary
       await fetch("/api/delete-image", {
@@ -142,7 +162,7 @@ export function DraggableImageManager({
       });
 
       setNewImages((prev) => prev.filter((_, i) => i !== index));
-      
+
       toast({
         title: "Success",
         description: "Image removed successfully",
@@ -170,7 +190,9 @@ export function DraggableImageManager({
 
       if (!response.ok) throw new Error("Failed to delete image");
 
-      setLocalExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+      setLocalExistingImages((prev) =>
+        prev.filter((img) => img.id !== imageId)
+      );
       onImageDelete?.(imageId);
 
       toast({
@@ -186,78 +208,88 @@ export function DraggableImageManager({
     }
   };
 
-  const handleDragEnd = useCallback(async (result: DropResult) => {
-    if (!result.destination || !enableDragDrop || !productId) return;
-    
-    // If dropped in the same position, do nothing
-    if (result.source.index === result.destination.index) return;
+  const handleDragEnd = useCallback(
+    async (result: DropResult) => {
+      if (!result.destination || !enableDragDrop || !productId) return;
 
-    const items = Array.from(localExistingImages);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+      // If dropped in the same position, do nothing
+      if (result.source.index === result.destination.index) return;
 
-    // Update local state immediately for better UX
-    setLocalExistingImages(items);
+      const items = Array.from(localExistingImages);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
 
-    // Prepare the new order with serial numbers
-    const imageOrder = items.map((item, index) => ({
-      imageId: item.id,
-      serialNumber: index + 1,
-    }));
+      // Update local state immediately for better UX
+      setLocalExistingImages(items);
 
-    setReordering(true);
+      // Prepare the new order with serial numbers
+      const imageOrder = items.map((item, index) => ({
+        imageId: item.id,
+        serialNumber: index + 1,
+      }));
 
-    try {
-      const response = await fetch("/api/admin/reorder-images", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId,
-          imageOrder,
-        }),
-      });
+      setReordering(true);
 
-      if (!response.ok) throw new Error("Failed to reorder images");
+      try {
+        const response = await fetch("/api/admin/reorder-images", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productId,
+            imageOrder,
+          }),
+        });
 
-      const data = await response.json();
-      
-      // Update with server response
-      if (data.images) {
-        setLocalExistingImages(data.images);
+        if (!response.ok) throw new Error("Failed to reorder images");
+
+        const data = await response.json();
+
+        // Update with server response
+        if (data.images) {
+          setLocalExistingImages(data.images);
+        }
+
+        if (onImageReorder) {
+          onImageReorder(imageOrder);
+        }
+
+        toast({
+          title: "Success",
+          description: "Images reordered successfully",
+        });
+      } catch (error) {
+        // Revert on error
+        setLocalExistingImages(sortedExistingImages);
+
+        toast({
+          title: "Error",
+          description: "Failed to reorder images",
+          variant: "destructive",
+        });
+      } finally {
+        setReordering(false);
       }
-      
-      if (onImageReorder) {
-        onImageReorder(imageOrder);
-      }
+    },
+    [
+      localExistingImages,
+      enableDragDrop,
+      productId,
+      onImageReorder,
+      toast,
+      sortedExistingImages,
+    ]
+  );
 
-      toast({
-        title: "Success",
-        description: "Images reordered successfully",
-      });
-    } catch (error) {
-      // Revert on error
-      setLocalExistingImages(sortedExistingImages);
-      
-      toast({
-        title: "Error",
-        description: "Failed to reorder images",
-        variant: "destructive",
-      });
-    } finally {
-      setReordering(false);
-    }
-  }, [localExistingImages, enableDragDrop, productId, onImageReorder, toast, sortedExistingImages]);
-
-  const ImageCard = ({ 
-    image, 
-    index, 
-    isDragging = false 
-  }: { 
-    image: DatabaseImage; 
-    index: number; 
-    isDragging?: boolean 
+  const ImageCard = ({
+    image,
+    index,
+    isDragging = false,
+  }: {
+    image: DatabaseImage;
+    index: number;
+    isDragging?: boolean;
   }) => (
-    <div className={`group relative ${isDragging ? 'opacity-50' : ''}`}>
+    <div className={`group relative ${isDragging ? "opacity-50" : ""}`}>
       <div className="aspect-square relative border rounded-lg overflow-hidden bg-gray-50">
         <Image
           src={image.url}
@@ -291,9 +323,7 @@ export function DraggableImageManager({
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <p className="text-xs text-gray-500 mt-1 truncate">
-        {image.fileName}
-      </p>
+      <p className="text-xs text-gray-500 mt-1 truncate">{image.fileName}</p>
       <p className="text-xs text-blue-500">
         Serial: {image.serialNumber || index + 1}
       </p>
@@ -304,7 +334,9 @@ export function DraggableImageManager({
     <div className="space-y-4">
       {/* Upload Area */}
       <div>
-        <Label htmlFor="image-upload-input">Product Images ({totalImages}/{maxImages})</Label>
+        <Label htmlFor="image-upload-input">
+          Product Images ({totalImages}/{maxImages})
+        </Label>
         <div className="mt-2">
           <Input
             id="image-upload-input"
@@ -318,7 +350,9 @@ export function DraggableImageManager({
           <Button
             type="button"
             variant="outline"
-            onClick={() => document.getElementById("image-upload-input")?.click()}
+            onClick={() =>
+              document.getElementById("image-upload-input")?.click()
+            }
             disabled={uploading || totalImages >= maxImages}
             className="w-full"
           >
@@ -332,7 +366,8 @@ export function DraggableImageManager({
       {enableDragDrop && localExistingImages.length > 1 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-700">
-            <strong>Drag and drop</strong> to reorder images. The first image will be the primary image.
+            <strong>Drag and drop</strong> to reorder images. The first image
+            will be the primary image.
           </p>
         </div>
       )}
