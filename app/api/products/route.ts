@@ -8,7 +8,6 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
-    const isAvailable = searchParams.get('available') === 'true' ? true : searchParams.get('available') === 'false' ? false : undefined
 
     // Build the query
     let query = supabaseServer
@@ -26,7 +25,6 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('is_available', true) // Only show available products for customers
 
     // Apply category filter
     if (category) {
@@ -52,7 +50,35 @@ export async function GET(request: NextRequest) {
     query = query.range(from, from + limit - 1)
     query = query.order('created_at', { ascending: false })
 
-    const { data: productsData, error: productsError, count } = await query
+    // Get total count first with a separate query
+    let countQuery = supabaseServer
+      .from("products")
+      .select("product_id", { count: 'exact', head: true })
+
+    // Apply the same filters for count
+    if (category) {
+      const { data: categoryData } = await supabaseServer
+        .from("categories")
+        .select("category_id")
+        .or(`name.ilike.%${category}%,category_id.eq.${category}`)
+        .single()
+      
+      if (categoryData) {
+        countQuery = countQuery.eq('category_id', categoryData.category_id)
+      }
+    }
+
+    if (search) {
+      countQuery = countQuery.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+    }
+
+    const { count, error: countError } = await countQuery
+
+    if (countError) {
+      console.error('Count error:', countError)
+    }
+
+    const { data: productsData, error: productsError } = await query
 
     if (productsError) {
       return NextResponse.json({ error: productsError.message }, { status: 500 })
@@ -99,6 +125,14 @@ export async function GET(request: NextRequest) {
     );
 
     const totalPages = Math.ceil((count || 0) / limit)
+
+    console.log('Products API Debug:', {
+      page,
+      limit,
+      totalCount: count,
+      totalPages,
+      productsReturned: productsWithImages.length
+    })
 
     return NextResponse.json({ 
       products: productsWithImages,

@@ -7,17 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { useProducts } from "@/hooks/use-products";
 
 export function FeaturedProducts() {
-  const { products, loading, error } = useProducts({ limit: 4 });
+  const { products, loading, error } = useProducts({ limit: 8 });
 
   if (loading) {
     return (
-      <section className="py-16">
+      <section className="py-16 pt-24">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-12">
             <div>
-              <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
+              <h2 className="text-3xl font-bold mb-4">Our Products</h2>
               <p className="text-gray-600">
-                Discover our most popular and innovative robotics solutions.
+                Discover our comprehensive range of robotics solutions.
               </p>
             </div>
             <Link href="/products">
@@ -26,7 +26,7 @@ export function FeaturedProducts() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, index) => (
+            {Array.from({ length: 8 }).map((_, index) => (
               <Card key={index} className="animate-pulse">
                 <CardContent className="p-0">
                   <div className="bg-gray-300 h-48 rounded-t-lg"></div>
@@ -46,11 +46,11 @@ export function FeaturedProducts() {
 
   if (error) {
     return (
-      <section className="py-16">
+      <section className="py-16 pt-24">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
-            <p className="text-red-600">Failed to load featured products</p>
+            <h2 className="text-3xl font-bold mb-4">Our Products</h2>
+            <p className="text-red-600">Failed to load products</p>
           </div>
         </div>
       </section>
@@ -58,13 +58,13 @@ export function FeaturedProducts() {
   }
 
   return (
-    <section className="py-16">
+    <section className="py-16 pt-24">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
+            <h2 className="text-3xl font-bold mb-4">Our Products</h2>
             <p className="text-gray-600">
-              Discover our most popular and innovative robotics solutions.
+              Discover our comprehensive range of robotics solutions.
             </p>
           </div>
           <Link href="/products">
@@ -115,6 +115,14 @@ export function FeaturedProducts() {
               </Card>
             </Link>
           ))}
+        </div>
+
+        <div className="flex justify-center mt-12">
+          <Link href="/products">
+            <Button size="lg" className="px-8">
+              View All Products
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
