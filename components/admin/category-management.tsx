@@ -14,6 +14,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryImageManager } from "@/components/ui/category-image-manager";
@@ -335,6 +346,57 @@ export function CategoryManagement() {
     }
   };
 
+  const handleDeleteCategory = async (category: Category) => {
+    try {
+      // First check if category has products
+      const productsResponse = await fetch(
+        `/api/products?categoryId=${category.category_id}`
+      );
+      const productsData = await productsResponse.json();
+      const productCount = productsData.products?.length || 0;
+
+      const response = await fetch("/api/admin/delete-category", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryId: category.category_id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete category");
+      }
+
+      // Remove the category from the list
+      setCategories(
+        categories.filter((c) => c.category_id !== category.category_id)
+      );
+
+      // Remove category images from state
+      setCategoryImages((prev) => {
+        const newState = { ...prev };
+        delete newState[category.category_id];
+        return newState;
+      });
+
+      toast({
+        title: "Success",
+        description:
+          productCount > 0
+            ? `Category "${category.name}" and ${productCount} associated products deleted successfully`
+            : `Category "${category.name}" deleted successfully`,
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete category",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading)
     return <div className="flex justify-center p-8">Loading categories...</div>;
 
@@ -465,15 +527,50 @@ export function CategoryManagement() {
             <Card key={category.category_id} className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-lg">{category.name}</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditClick(category)}
-                  className="flex items-center gap-1"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditClick(category)}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Category</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{category.name}"?
+                          This will permanently remove the category and all its
+                          images. Products in this category will be moved to "No
+                          Category" and will remain available for sale.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteCategory(category)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete Category
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
 
               {/* Category Image */}

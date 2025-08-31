@@ -26,6 +26,17 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Image from "next/image";
 
 interface Product {
@@ -33,7 +44,7 @@ interface Product {
   name: string;
   description?: string;
   price: number;
-  category_id: number;
+  category_id: number | null; // ✅ Now nullable
   is_available: boolean;
   inventory?: {
     quantity: number;
@@ -136,10 +147,10 @@ export function ProductManagement() {
   };
 
   const handleAddProduct = async () => {
-    if (!newProduct.name || !newProduct.price || !newProduct.category_id) {
+    if (!newProduct.name || !newProduct.price) {
       toast({
         title: "Missing fields",
-        description: "Name, price, and category are required",
+        description: "Name and price are required",
         variant: "destructive",
       });
       return;
@@ -148,7 +159,10 @@ export function ProductManagement() {
     const payload = {
       name: newProduct.name.trim(),
       price: parseFloat(newProduct.price),
-      category_id: parseInt(newProduct.category_id),
+      category_id:
+        newProduct.category_id && newProduct.category_id !== "none"
+          ? parseInt(newProduct.category_id)
+          : null,
       description: newProduct.description?.trim() || "",
       is_available: newProduct.is_available,
       created_by: 1, // Replace with actual admin ID from context/session if available
@@ -235,7 +249,7 @@ export function ProductManagement() {
     setEditProduct({
       name: product.name,
       price: String(product.price),
-      category_id: String(product.category_id),
+      category_id: product.category_id ? String(product.category_id) : "none",
       description: product.description || "",
       is_available: product.is_available,
       images: [],
@@ -247,10 +261,10 @@ export function ProductManagement() {
   const handleEditProduct = async () => {
     if (!editingProduct) return;
 
-    if (!editProduct.name || !editProduct.price || !editProduct.category_id) {
+    if (!editProduct.name || !editProduct.price) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in name and price",
         variant: "destructive",
       });
       return;
@@ -259,7 +273,10 @@ export function ProductManagement() {
     try {
       // Validate inputs before sending
       const priceValue = parseFloat(editProduct.price);
-      const categoryIdValue = parseInt(editProduct.category_id);
+      const categoryIdValue =
+        editProduct.category_id && editProduct.category_id !== "none"
+          ? parseInt(editProduct.category_id)
+          : null;
 
       if (isNaN(priceValue) || priceValue <= 0) {
         toast({
@@ -270,7 +287,11 @@ export function ProductManagement() {
         return;
       }
 
-      if (isNaN(categoryIdValue) || categoryIdValue <= 0) {
+      if (
+        editProduct.category_id &&
+        editProduct.category_id !== "none" &&
+        (isNaN(categoryIdValue!) || categoryIdValue! <= 0)
+      ) {
         toast({
           title: "Error",
           description: "Please select a valid category",
@@ -315,7 +336,10 @@ export function ProductManagement() {
                 name: editProduct.name,
                 description: editProduct.description,
                 price: parseFloat(editProduct.price),
-                category_id: parseInt(editProduct.category_id),
+                category_id:
+                  editProduct.category_id && editProduct.category_id !== "none"
+                    ? parseInt(editProduct.category_id)
+                    : null,
                 is_available: editProduct.is_available,
                 // Keep existing images for now, refresh would be better
                 images:
@@ -352,6 +376,38 @@ export function ProductManagement() {
         title: "Error",
         description:
           error instanceof Error ? error.message : "Failed to update product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProduct = async (product: Product) => {
+    try {
+      const response = await fetch("/api/admin/delete-product", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.product_id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete product");
+      }
+
+      // Remove the product from the list
+      setProducts(products.filter((p) => p.product_id !== product.product_id));
+
+      toast({
+        title: "Success",
+        description: "Product and all associated images deleted successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to delete product",
         variant: "destructive",
       });
     }
@@ -408,9 +464,10 @@ export function ProductManagement() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select category (optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">No Category</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem
                         key={cat.category_id}
@@ -507,9 +564,10 @@ export function ProductManagement() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select category (optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">No Category</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem
                         key={cat.category_id}
@@ -615,6 +673,9 @@ export function ProductManagement() {
                     Price: ৳{product.price}
                   </p>
                   <p className="text-sm text-gray-500">
+                    Category: {product.category_name || "No Category"}
+                  </p>
+                  <p className="text-sm text-gray-500">
                     Available: {product.is_available ? "Yes" : "No"}
                   </p>
                   {product.images && product.images.length > 0 && (
@@ -636,6 +697,38 @@ export function ProductManagement() {
                   <Edit className="h-4 w-4" />
                   Edit
                 </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{product.name}"? This
+                        will permanently remove the product and all its images
+                        from the database. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteProduct(product)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete Product
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </Card>
