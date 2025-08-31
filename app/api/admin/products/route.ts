@@ -1,0 +1,81 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabaseServerClient";
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get all products with category information for admin
+    const { data: productsData, error: productsError } = await supabaseServer
+      .from("products")
+      .select(`
+        product_id,
+        name,
+        description,
+        price,
+        category_id,
+        is_available,
+        created_at,
+        updated_at,
+        categories (
+          category_id,
+          name,
+          description
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (productsError) {
+      console.error("Error fetching products:", productsError);
+      return NextResponse.json({ error: productsError.message }, { status: 500 });
+    }
+
+    // Get images and inventory for each product
+    const productsWithDetails = await Promise.all(
+      (productsData || []).map(async (product) => {
+        // Get images
+        const { data: imagesData } = await supabaseServer
+          .from("productimages")
+          .select("image_id, image_url, cloudinary_public_id, file_name, is_primary, created_at")
+          .eq("product_id", product.product_id)
+          .order('is_primary', { ascending: false });
+
+        // Get inventory
+        const { data: inventoryData } = await supabaseServer
+          .from("productinventory")
+          .select("quantity")
+          .eq("product_id", product.product_id)
+          .single();
+
+        return {
+          product_id: product.product_id, // Keep original field name for admin
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category_id: product.category_id,
+          is_available: product.is_available,
+          created_at: product.created_at,
+          updated_at: product.updated_at,
+          category_name: (product.categories as any)?.name || 'Unknown',
+          inventory: {
+            quantity: inventoryData?.quantity || 0
+          },
+          images: (imagesData || []).map((img: any) => ({
+            id: img.image_id,
+            url: img.image_url,
+            publicId: img.cloudinary_public_id,
+            fileName: img.file_name,
+            isPrimary: img.is_primary,
+            createdAt: img.created_at,
+          })),
+        };
+      })
+    );
+
+    return NextResponse.json({ 
+      products: productsWithDetails,
+      total: productsWithDetails.length 
+    });
+  } catch (error) {
+    console.error("Admin products API error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

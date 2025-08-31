@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
 interface Product {
-  product_id: number;
+  product_id: number; // ✅ Keep original field name for admin
   name: string;
   description?: string;
   price: number;
@@ -97,7 +97,7 @@ export function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products");
+      const response = await fetch("/api/admin/products"); // ✅ Use admin API
       const data = await response.json();
 
       if (!response.ok) {
@@ -257,12 +257,34 @@ export function ProductManagement() {
     }
 
     try {
+      // Validate inputs before sending
+      const priceValue = parseFloat(editProduct.price);
+      const categoryIdValue = parseInt(editProduct.category_id);
+      
+      if (isNaN(priceValue) || priceValue <= 0) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid price greater than 0",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (isNaN(categoryIdValue) || categoryIdValue <= 0) {
+        toast({
+          title: "Error",
+          description: "Please select a valid category",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const payload = {
-        id: editingProduct.product_id,
-        name: editProduct.name,
-        description: editProduct.description,
-        price: parseFloat(editProduct.price),
-        category_id: parseInt(editProduct.category_id),
+        id: editingProduct.product_id, // ✅ Use correct admin field name
+        name: editProduct.name.trim(),
+        description: editProduct.description?.trim() || "",
+        price: priceValue,
+        category_id: categoryIdValue,
         images: editProduct.images.map((img) => ({
           image_url: img.url,
           cloudinary_public_id: img.publicId,
@@ -558,7 +580,7 @@ export function ProductManagement() {
       <CardContent className="space-y-4">
         {products.map((product) => (
           <Card
-            key={product._uuid || product.product_id}
+                        key={product._uuid || product.product_id}
             className="p-4 border rounded"
           >
             <div className="flex gap-4">

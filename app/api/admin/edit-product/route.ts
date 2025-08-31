@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabaseServerClient";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
 import { z } from "zod";
 
 const editProductSchema = z.object({
   id: z.number(),
   name: z.string().min(1, "Product name is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional(),
   price: z.number().positive("Price must be positive"),
   category_id: z.number().positive("Category is required"),
   images: z.array(z.object({
@@ -13,14 +14,30 @@ const editProductSchema = z.object({
     cloudinary_public_id: z.string(),
     file_name: z.string(),
     is_primary: z.boolean().optional().default(false),
-  })).optional(),
-  deletedImageIds: z.array(z.number()).optional(),
+  })).optional().default([]),
+  deletedImageIds: z.array(z.number()).optional().default([]),
 });
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = editProductSchema.parse(body);
+    
+    const result = editProductSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: result.error.issues.map(issue => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code
+          }))
+        },
+        { status: 400 }
+      );
+    }
+    
+    const validatedData = result.data;
 
     const supabase = supabaseServer;
 
@@ -59,11 +76,10 @@ export async function PUT(request: NextRequest) {
         // Delete from Cloudinary first
         for (const image of imagesToDelete) {
           try {
-            await fetch("/api/delete-image", {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ publicId: image.cloudinary_public_id }),
-            });
+            const deleteResult = await deleteImageFromCloudinary(image.cloudinary_public_id);
+            if (!deleteResult.success) {
+              console.error("Failed to delete from Cloudinary:", deleteResult.message);
+            }
           } catch (cloudinaryError) {
             console.error("Error deleting from Cloudinary:", cloudinaryError);
             // Continue even if Cloudinary deletion fails
