@@ -6,7 +6,7 @@ import { z as productZ } from "zod";
 import { cookies as getCookies } from "next/headers";
 
 const productSchema = productZ.object({
-  category_id: productZ.number(),
+  category_id: productZ.number().nullable(),
   name: productZ.string().min(1),
   description: productZ.string().optional(),
   price: productZ.number(),
@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       cloudinary_public_id: image.publicId,
       file_name: image.fileName,
       is_primary: index === 0, // First image is primary
+      serial_number: index + 1, // Set serial number based on order
     }));
 
     const { data: imageData, error: imageError } = await supabaseServer

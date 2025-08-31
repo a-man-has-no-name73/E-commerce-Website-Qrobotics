@@ -68,9 +68,11 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {product.category}
                 </Badge>
                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                <div 
+                <div
                   className="text-gray-600 text-sm mb-3 line-clamp-2 prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: product.description || "" }}
+                  dangerouslySetInnerHTML={{
+                    __html: product.description || "",
+                  }}
                 />
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xl font-bold text-blue-600">

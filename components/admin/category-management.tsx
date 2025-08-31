@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon, Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryImageManager } from "@/components/ui/category-image-manager";
 import Image from "next/image";
@@ -61,6 +61,12 @@ export function CategoryManagement() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  
+  // Loading states for operations
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isUpdatingCategory, setIsUpdatingCategory] = useState(false);
+  const [isDeletingCategory, setIsDeletingCategory] = useState<number | null>(null);
+  
   const [newCategory, setNewCategory] = useState({ name: "", description: "" });
   const [editCategory, setEditCategory] = useState({
     name: "",
@@ -143,6 +149,13 @@ export function CategoryManagement() {
       return;
     }
 
+    setIsCreatingCategory(true);
+    
+    toast({
+      title: "Creating category...",
+      description: "Setting up new category and uploading images",
+    });
+
     try {
       const response = await fetch("/api/admin/create-category", {
         method: "POST",
@@ -204,6 +217,8 @@ export function CategoryManagement() {
         description: "Failed to create category",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -348,7 +363,14 @@ export function CategoryManagement() {
   };
 
   const handleDeleteCategory = async (category: Category) => {
+    setIsDeletingCategory(category.category_id);
+    
     try {
+      toast({
+        title: "Deleting Category",
+        description: `Deleting "${category.name}"...`,
+      });
+      
       // First check if category has products
       const productsResponse = await fetch(
         `/api/products?categoryId=${category.category_id}`
@@ -395,6 +417,8 @@ export function CategoryManagement() {
           error instanceof Error ? error.message : "Failed to delete category",
         variant: "destructive",
       });
+    } finally {
+      setIsDeletingCategory(null);
     }
   };
 
@@ -456,7 +480,20 @@ export function CategoryManagement() {
                 maxImages={3}
                 initialImages={newImages}
               />
-              <Button onClick={handleAddCategory}>Add Category</Button>
+              <Button 
+                onClick={handleAddCategory} 
+                disabled={isCreatingCategory}
+                className="w-full"
+              >
+                {isCreatingCategory ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Category...
+                  </>
+                ) : (
+                  "Add Category"
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -545,9 +582,19 @@ export function CategoryManagement() {
                         variant="outline"
                         size="sm"
                         className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={isDeletingCategory === category.category_id}
                       >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
+                        {isDeletingCategory === category.category_id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </>
+                        )}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -561,12 +608,22 @@ export function CategoryManagement() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isDeletingCategory === category.category_id}>
+                          Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => handleDeleteCategory(category)}
                           className="bg-red-600 hover:bg-red-700"
+                          disabled={isDeletingCategory === category.category_id}
                         >
-                          Delete Category
+                          {isDeletingCategory === category.category_id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Deleting...
+                            </>
+                          ) : (
+                            "Delete Category"
+                          )}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -602,7 +659,7 @@ export function CategoryManagement() {
                 </div>
               )}
 
-              <div 
+              <div
                 className="text-sm text-gray-600 mb-2 prose prose-sm"
                 dangerouslySetInnerHTML={{ __html: category.description || "" }}
               />

@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TextStyle from '@tiptap/extension-text-style'
-import { Color } from '@tiptap/extension-color'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { useEffect, useState } from 'react'
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useEffect, useState } from "react";
 import {
   Bold,
   Italic,
@@ -18,38 +18,46 @@ import {
   Undo,
   Redo,
   Type,
-  Palette
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+  Palette,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from "@/components/ui/popover";
 
 interface RichTextEditorProps {
-  content: string
-  onChange: (content: string) => void
-  placeholder?: string
-  className?: string
-  disabled?: boolean
+  content: string;
+  onChange: (content: string) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
 const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) {
-    return null
+    return null;
   }
 
   const colorOptions = [
-    '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', 
-    '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000'
-  ]
+    "#000000",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFF00",
+    "#FF00FF",
+    "#00FFFF",
+    "#FFA500",
+    "#800080",
+    "#008000",
+  ];
 
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-200">
       {/* Text Formatting */}
       <Button
-        variant={editor.isActive('bold') ? 'default' : 'ghost'}
+        variant={editor.isActive("bold") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
@@ -57,9 +65,9 @@ const MenuBar = ({ editor }: { editor: any }) => {
       >
         <Bold className="h-4 w-4" />
       </Button>
-      
+
       <Button
-        variant={editor.isActive('italic') ? 'default' : 'ghost'}
+        variant={editor.isActive("italic") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleItalic().run()}
         disabled={!editor.can().chain().focus().toggleItalic().run()}
@@ -69,7 +77,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
 
       <Button
-        variant={editor.isActive('strike') ? 'default' : 'ghost'}
+        variant={editor.isActive("strike") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleStrike().run()}
         disabled={!editor.can().chain().focus().toggleStrike().run()}
@@ -82,7 +90,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       {/* Headings */}
       <Button
-        variant={editor.isActive('heading', { level: 1 }) ? 'default' : 'ghost'}
+        variant={editor.isActive("heading", { level: 1 }) ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         title="Heading 1"
@@ -92,7 +100,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
 
       <Button
-        variant={editor.isActive('heading', { level: 2 }) ? 'default' : 'ghost'}
+        variant={editor.isActive("heading", { level: 2 }) ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         title="Heading 2"
@@ -102,7 +110,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
 
       <Button
-        variant={editor.isActive('heading', { level: 3 }) ? 'default' : 'ghost'}
+        variant={editor.isActive("heading", { level: 3 }) ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         title="Heading 3"
@@ -115,7 +123,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       {/* Lists */}
       <Button
-        variant={editor.isActive('bulletList') ? 'default' : 'ghost'}
+        variant={editor.isActive("bulletList") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         title="Bullet List"
@@ -124,7 +132,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
 
       <Button
-        variant={editor.isActive('orderedList') ? 'default' : 'ghost'}
+        variant={editor.isActive("orderedList") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         title="Numbered List"
@@ -133,7 +141,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
 
       <Button
-        variant={editor.isActive('blockquote') ? 'default' : 'ghost'}
+        variant={editor.isActive("blockquote") ? "default" : "ghost"}
         size="sm"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
         title="Quote"
@@ -195,65 +203,68 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Redo className="h-4 w-4" />
       </Button>
     </div>
-  )
-}
+  );
+};
 
 export default function RichTextEditor({
   content,
   onChange,
   placeholder = "Start typing...",
   className,
-  disabled = false
+  disabled = false,
 }: RichTextEditorProps) {
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      TextStyle,
-      Color
-    ],
+    extensions: [StarterKit, TextStyle, Color],
     content,
     editable: !disabled,
     immediatelyRender: false, // Fix for SSR hydration mismatch
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[150px] p-4',
-          'prose-headings:font-bold prose-p:my-2 prose-ul:my-2 prose-ol:my-2',
-          'prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4',
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[150px] p-4",
+          "prose-headings:font-bold prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
+          "prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4",
           className
         ),
       },
     },
-  })
+  });
 
   if (!isMounted) {
     return (
-      <div className={cn("border border-gray-200 rounded-md overflow-hidden", className)}>
+      <div
+        className={cn(
+          "border border-gray-200 rounded-md overflow-hidden",
+          className
+        )}
+      >
         <div className="min-h-[150px] p-4 text-gray-500">Loading editor...</div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className={cn("border border-gray-200 rounded-md overflow-hidden", className)}>
+    <div
+      className={cn(
+        "border border-gray-200 rounded-md overflow-hidden",
+        className
+      )}
+    >
       {!disabled && <MenuBar editor={editor} />}
-      <EditorContent 
-        editor={editor} 
+      <EditorContent
+        editor={editor}
         placeholder={placeholder}
-        className={cn(
-          "min-h-[150px]",
-          disabled && "bg-gray-50"
-        )}
+        className={cn("min-h-[150px]", disabled && "bg-gray-50")}
       />
     </div>
-  )
+  );
 }

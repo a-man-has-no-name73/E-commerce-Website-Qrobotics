@@ -138,7 +138,7 @@ function CategoryCard({ category }: { category: Category }) {
           </div>
 
           <div className="space-y-3">
-            <div 
+            <div
               className="text-gray-600 text-sm line-clamp-2 prose prose-sm max-w-none"
               dangerouslySetInnerHTML={{ __html: category.description || "" }}
             />

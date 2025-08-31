@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ProductImageManager } from "@/components/ui/product-image-manager";
+import { SimpleDraggableImageManager } from "@/components/ui/simple-draggable-image-manager";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,7 @@ interface DatabaseImage {
   publicId: string;
   fileName: string;
   isPrimary: boolean;
+  serialNumber?: number;
   createdAt: string;
 }
 
@@ -84,10 +86,15 @@ export function ProductManagement() {
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
+  
+  // Loading states for operations
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
+  const [isDeletingProduct, setIsDeletingProduct] = useState<number | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
     price: "",
-    category_id: "",
+    category_id: "none",
     description: "",
     is_available: true,
     images: [] as UploadedImage[],
@@ -157,11 +164,21 @@ export function ProductManagement() {
       return;
     }
 
+    setIsCreatingProduct(true);
+    
+    // Show initial feedback
+    toast({
+      title: "Creating product...",
+      description: "Preparing product data and uploading images",
+    });
+
     const payload = {
       name: newProduct.name.trim(),
       price: parseFloat(newProduct.price),
       category_id:
-        newProduct.category_id && newProduct.category_id !== "none"
+        newProduct.category_id && 
+        newProduct.category_id !== "none" && 
+        newProduct.category_id !== ""
           ? parseInt(newProduct.category_id)
           : null,
       description: newProduct.description?.trim() || "",
@@ -212,7 +229,7 @@ export function ProductManagement() {
       setNewProduct({
         name: "",
         price: "",
-        category_id: "",
+        category_id: "none",
         description: "",
         is_available: true,
         images: [],
@@ -242,6 +259,8 @@ export function ProductManagement() {
 
       // Refresh products to show any partially created product
       fetchProducts();
+    } finally {
+      setIsCreatingProduct(false);
     }
   };
 
@@ -271,11 +290,21 @@ export function ProductManagement() {
       return;
     }
 
+    setIsUpdatingProduct(true);
+    
+    // Show initial feedback
+    toast({
+      title: "Updating product...",
+      description: "Saving changes and processing images",
+    });
+
     try {
       // Validate inputs before sending
       const priceValue = parseFloat(editProduct.price);
       const categoryIdValue =
-        editProduct.category_id && editProduct.category_id !== "none"
+        editProduct.category_id && 
+        editProduct.category_id !== "none" && 
+        editProduct.category_id !== ""
           ? parseInt(editProduct.category_id)
           : null;
 
@@ -291,6 +320,7 @@ export function ProductManagement() {
       if (
         editProduct.category_id &&
         editProduct.category_id !== "none" &&
+        editProduct.category_id !== "" &&
         (isNaN(categoryIdValue!) || categoryIdValue! <= 0)
       ) {
         toast({
@@ -379,10 +409,19 @@ export function ProductManagement() {
           error instanceof Error ? error.message : "Failed to update product",
         variant: "destructive",
       });
+    } finally {
+      setIsUpdatingProduct(false);
     }
   };
 
   const handleDeleteProduct = async (product: Product) => {
+    setIsDeletingProduct(product.product_id);
+    
+    toast({
+      title: "Deleting product...",
+      description: "Removing product and associated images",
+    });
+
     try {
       const response = await fetch("/api/admin/delete-product", {
         method: "DELETE",
@@ -411,6 +450,8 @@ export function ProductManagement() {
           error instanceof Error ? error.message : "Failed to delete product",
         variant: "destructive",
       });
+    } finally {
+      setIsDeletingProduct(null);
     }
   };
 
@@ -503,7 +544,20 @@ export function ProductManagement() {
                   initialImages={newProduct.images}
                 />
               </div>
-              <Button onClick={handleAddProduct}>Add Product</Button>
+              <Button 
+                onClick={handleAddProduct} 
+                disabled={isCreatingProduct}
+                className="w-full"
+              >
+                {isCreatingProduct ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Product...
+                  </>
+                ) : (
+                  "Add Product"
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -595,8 +649,9 @@ export function ProductManagement() {
                 />
               </div>
               <div>
-                <ProductImageManager
+                <SimpleDraggableImageManager
                   productId={editingProduct?.product_id}
+                  enableDragDrop={true}
                   existingImages={
                     editingProduct?.images?.map((img) => ({
                       id: img.id,
@@ -604,10 +659,11 @@ export function ProductManagement() {
                       publicId: img.publicId,
                       fileName: img.fileName,
                       isPrimary: img.isPrimary,
+                      serialNumber: img.serialNumber,
                       createdAt: img.createdAt,
                     })) || []
                   }
-                  onImagesChange={(images) =>
+                  onImagesChange={(images: UploadedImage[]) =>
                     setEditProduct({ ...editProduct, images })
                   }
                   onImageDelete={(imageId: number) => {
@@ -628,10 +684,44 @@ export function ProductManagement() {
                       };
                     });
                   }}
+                  onImageReorder={(imageOrder: { imageId: number; serialNumber: number }[]) => {
+                    // Only update if there's actually a change to prevent infinite loops
+                    if (editingProduct?.images) {
+                      const currentOrder = editingProduct.images.map(img => ({ id: img.id, serial: img.serialNumber || 0 }));
+                      const newOrder = imageOrder.map((order: { imageId: number; serialNumber: number }) => ({ id: order.imageId, serial: order.serialNumber }));
+                      
+                      // Check if order actually changed
+                      const hasChanged = currentOrder.some((current, index) => 
+                        current.id !== newOrder[index]?.id || current.serial !== newOrder[index]?.serial
+                      );
+                      
+                      if (hasChanged) {
+                        const reorderedImages = imageOrder.map((order: { imageId: number; serialNumber: number }) => {
+                          const img = editingProduct.images?.find(i => i.id === order.imageId);
+                          return img ? { ...img, serialNumber: order.serialNumber, isPrimary: order.serialNumber === 1 } : null;
+                        }).filter(Boolean);
+                        
+                        setEditingProduct(prev => prev ? { ...prev, images: reorderedImages as any } : prev);
+                      }
+                    }
+                  }}
                   maxImages={5}
                 />
               </div>
-              <Button onClick={handleEditProduct}>Update Product</Button>
+              <Button 
+                onClick={handleEditProduct} 
+                disabled={isUpdatingProduct}
+                className="w-full"
+              >
+                {isUpdatingProduct ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Updating Product...
+                  </>
+                ) : (
+                  "Update Product"
+                )}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -666,9 +756,11 @@ export function ProductManagement() {
               {/* Product Info */}
               <div className="flex-1">
                 <h3 className="font-semibold text-lg">{product.name}</h3>
-                <div 
+                <div
                   className="text-sm text-gray-600 line-clamp-2 prose prose-sm"
-                  dangerouslySetInnerHTML={{ __html: product.description || "" }}
+                  dangerouslySetInnerHTML={{
+                    __html: product.description || "",
+                  }}
                 />
                 <div className="flex gap-4 mt-2">
                   <p className="text-sm text-gray-500">
@@ -706,9 +798,19 @@ export function ProductManagement() {
                       variant="outline"
                       size="sm"
                       className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      disabled={isDeletingProduct === product.product_id}
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
+                      {isDeletingProduct === product.product_id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </>
+                      )}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -725,8 +827,16 @@ export function ProductManagement() {
                       <AlertDialogAction
                         onClick={() => handleDeleteProduct(product)}
                         className="bg-red-600 hover:bg-red-700"
+                        disabled={isDeletingProduct === product.product_id}
                       >
-                        Delete Product
+                        {isDeletingProduct === product.product_id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Deleting...
+                          </>
+                        ) : (
+                          "Delete Product"
+                        )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

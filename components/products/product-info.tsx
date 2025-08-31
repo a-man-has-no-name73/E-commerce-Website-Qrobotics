@@ -83,7 +83,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       <div>
         <h3 className="text-lg font-semibold mb-2">Description</h3>
-        <div 
+        <div
           className="text-gray-600 leading-relaxed prose prose-sm max-w-none"
           dangerouslySetInnerHTML={{ __html: product.description || "" }}
         />

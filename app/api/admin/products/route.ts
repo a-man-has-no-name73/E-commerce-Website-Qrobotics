@@ -34,9 +34,9 @@ export async function GET(request: NextRequest) {
         // Get images
         const { data: imagesData } = await supabaseServer
           .from("productimages")
-          .select("image_id, image_url, cloudinary_public_id, file_name, is_primary, created_at")
+          .select("image_id, image_url, cloudinary_public_id, file_name, is_primary, serial_number, created_at")
           .eq("product_id", product.product_id)
-          .order('is_primary', { ascending: false });
+          .order('serial_number', { ascending: true });
 
         // Get inventory
         const { data: inventoryData } = await supabaseServer
@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
             publicId: img.cloudinary_public_id,
             fileName: img.file_name,
             isPrimary: img.is_primary,
+            serialNumber: img.serial_number,
             createdAt: img.created_at,
           })),
         };

@@ -8,7 +8,7 @@ const editProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().optional(),
   price: z.number().positive("Price must be positive"),
-  category_id: z.number().positive("Category is required"),
+  category_id: z.number().positive().nullable(),
   images: z.array(z.object({
     image_url: z.string(),
     cloudinary_public_id: z.string(),
