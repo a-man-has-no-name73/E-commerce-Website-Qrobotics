@@ -1,9 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
+
+interface CategoryImage {
+  id: number;
+  url: string;
+  publicId: string;
+  fileName: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+interface Category {
+  category_id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  images?: CategoryImage[];
+  primaryImage?: CategoryImage;
+}
 
 export function Categories() {
   const { categories, loading: categoriesLoading, error } = useCategories();
@@ -82,11 +101,7 @@ export function Categories() {
   );
 }
 
-function CategoryCard({
-  category,
-}: {
-  category: { category_id: number; name: string; description?: string };
-}) {
+function CategoryCard({ category }: { category: Category }) {
   const { products } = useProducts({
     category: category.category_id.toString(),
     limit: 1,
@@ -96,11 +111,20 @@ function CategoryCard({
     <Link href={`/products?category=${category.category_id}`}>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
         <CardContent className="p-6">
-          <img
-            src="/placeholder.svg"
-            alt={category.name}
-            className="w-full h-40 object-cover rounded-lg mb-4"
-          />
+          {category.primaryImage ? (
+            <Image
+              src={category.primaryImage.url}
+              alt={category.name}
+              width={400}
+              height={160}
+              className="w-full h-40 object-cover rounded-lg mb-4"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            />
+          ) : (
+            <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-400 text-sm">No image available</span>
+            </div>
+          )}
           <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
           <p className="text-gray-600 text-sm mb-2">{category.description}</p>
           <p className="text-blue-600 font-medium">View products</p>

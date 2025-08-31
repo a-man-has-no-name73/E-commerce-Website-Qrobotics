@@ -1,11 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { useCategories } from "@/hooks/use-categories";
 import { useProducts } from "@/hooks/use-products";
+
+interface CategoryImage {
+  id: number;
+  url: string;
+  publicId: string;
+  fileName: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+interface Category {
+  category_id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  images?: CategoryImage[];
+  primaryImage?: CategoryImage;
+}
 
 export default function CategoriesPage() {
   const { categories, loading: categoriesLoading, error } = useCategories();
@@ -85,11 +104,7 @@ export default function CategoriesPage() {
   );
 }
 
-function CategoryCard({
-  category,
-}: {
-  category: { category_id: number; name: string; description?: string };
-}) {
+function CategoryCard({ category }: { category: Category }) {
   const { products, loading } = useProducts({
     category: category.category_id.toString(),
     limit: 3,
@@ -100,11 +115,22 @@ function CategoryCard({
       <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
         <CardContent className="p-6">
           <div className="relative mb-4">
-            <img
-              src="/placeholder.svg"
-              alt={category.name}
-              className="w-full h-40 object-cover rounded-lg"
-            />
+            {category.primaryImage ? (
+              <Image
+                src={category.primaryImage.url}
+                alt={category.name}
+                width={400}
+                height={160}
+                className="w-full h-40 object-cover rounded-lg"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              />
+            ) : (
+              <div className="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-sm">
+                  No image available
+                </span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg"></div>
             <div className="absolute bottom-2 left-2 text-white">
               <h3 className="font-semibold text-lg">{category.name}</h3>

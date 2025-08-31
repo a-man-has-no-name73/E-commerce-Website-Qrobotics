@@ -1,7 +1,7 @@
 // CATEGORY MANAGEMENT (UPDATED)
 // components/admin/category-management.tsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CategoryImageManager } from "@/components/ui/category-image-manager";
+import Image from "next/image";
 
 interface Category {
   category_id: number;
@@ -23,6 +25,21 @@ interface Category {
   description?: string;
   created_at: string;
   _uuid?: string; // used for frontend-only key uniqueness
+}
+
+interface CategoryImage {
+  id: number;
+  url: string;
+  publicId: string;
+  fileName: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
+interface UploadedImage {
+  url: string;
+  publicId: string;
+  fileName: string;
 }
 
 export function CategoryManagement() {
@@ -37,21 +54,62 @@ export function CategoryManagement() {
     name: "",
     description: "",
   });
+  const [newImages, setNewImages] = useState<UploadedImage[]>([]);
+  const [editImages, setEditImages] = useState<UploadedImage[]>([]);
+  const [existingImages, setExistingImages] = useState<CategoryImage[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
+  const [categoryImages, setCategoryImages] = useState<{
+    [key: number]: CategoryImage[];
+  }>({});
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch("/api/categories");
       const data = await response.json();
-      setCategories(
-        (data.categories || []).map((c: Category) => ({
-          ...c,
-          _uuid: crypto.randomUUID(),
-        }))
+      const categoriesWithUuid = (data.categories || []).map((c: Category) => ({
+        ...c,
+        _uuid: c._uuid || crypto.randomUUID(), // Only generate UUID if not exists
+      }));
+      setCategories(categoriesWithUuid);
+
+      // Fetch images for each category
+      const imagePromises = categoriesWithUuid.map(
+        async (category: Category) => {
+          try {
+            const imageResponse = await fetch(
+              `/api/categories/images?categoryId=${category.category_id}`
+            );
+            if (!imageResponse.ok) {
+              console.error(
+                `Failed to fetch images for category ${category.category_id}: ${imageResponse.status}`
+              );
+              return { categoryId: category.category_id, images: [] };
+            }
+            const imageData = await imageResponse.json();
+            return {
+              categoryId: category.category_id,
+              images: imageData.images || [],
+            };
+          } catch (error) {
+            console.error(
+              `Failed to fetch images for category ${category.category_id}:`,
+              error
+            );
+            return { categoryId: category.category_id, images: [] };
+          }
+        }
       );
+
+      const imageResults = await Promise.all(imagePromises);
+      const imageMap: { [key: number]: CategoryImage[] } = {};
+      imageResults.forEach((result) => {
+        imageMap[result.categoryId] = result.images;
+      });
+      setCategoryImages(imageMap);
     } catch (error) {
       toast({
         title: "Error",
@@ -61,9 +119,18 @@ export function CategoryManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const handleAddCategory = async () => {
+    if (!newCategory.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Category name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch("/api/admin/create-category", {
         method: "POST",
@@ -73,11 +140,50 @@ export function CategoryManagement() {
       const result = await response.json();
       if (!response.ok)
         throw new Error(result.error || "Failed to create category");
-      setCategories([
-        ...categories,
-        { ...result.category, _uuid: crypto.randomUUID() },
-      ]);
+
+      const createdCategory = {
+        ...result.category,
+        _uuid: result.category._uuid || crypto.randomUUID(),
+      };
+      setCategories((prev) => [...prev, createdCategory]);
+
+      // If there are new images, save them
+      if (newImages.length > 0) {
+        try {
+          const imageResponse = await fetch("/api/categories/images", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              categoryId: result.category.category_id,
+              images: newImages,
+            }),
+          });
+
+          if (imageResponse.ok) {
+            // Refresh category images
+            const imageData = await fetch(
+              `/api/categories/images?categoryId=${result.category.category_id}`
+            );
+            if (imageData.ok) {
+              const images = await imageData.json();
+              setCategoryImages((prev) => ({
+                ...prev,
+                [result.category.category_id]: images.images || [],
+              }));
+            }
+          }
+        } catch (imageError) {
+          console.error("Failed to save category images:", imageError);
+          toast({
+            title: "Warning",
+            description: "Category created but failed to save images",
+            variant: "destructive",
+          });
+        }
+      }
+
       setNewCategory({ name: "", description: "" });
+      setNewImages([]);
       setIsAddingCategory(false);
       toast({ title: "Success", description: "Category created successfully" });
     } catch (error) {
@@ -89,14 +195,31 @@ export function CategoryManagement() {
     }
   };
 
-  const handleEditClick = (category: Category) => {
-    setEditingCategory(category);
-    setEditCategory({
-      name: category.name,
-      description: category.description || "",
-    });
-    setIsEditingCategory(true);
-  };
+  const handleEditClick = useCallback(
+    (category: Category) => {
+      const images = categoryImages[category.category_id] || [];
+      setEditingCategory(category);
+      setEditCategory({
+        name: category.name,
+        description: category.description || "",
+      });
+      setExistingImages(images);
+      setEditImages([]);
+      setImagesToDelete([]);
+      setIsEditingCategory(true);
+    },
+    [categoryImages]
+  );
+
+  const handleImageDelete = useCallback((imageId: number) => {
+    setImagesToDelete((prev) => [...prev, imageId]);
+  }, []);
+
+  // Memoize the existing images to prevent unnecessary re-renders
+  const memoizedExistingImages = useMemo(
+    () => existingImages,
+    [existingImages]
+  );
 
   const handleEditCategory = async () => {
     if (!editingCategory) return;
@@ -129,9 +252,41 @@ export function CategoryManagement() {
         throw new Error(result.error || "Failed to update category");
       }
 
+      // Handle image deletions
+      if (imagesToDelete.length > 0) {
+        const deletePromises = imagesToDelete.map(async (imageId) => {
+          try {
+            await fetch("/api/categories/images", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageId }),
+            });
+          } catch (error) {
+            console.error(`Failed to delete image ${imageId}:`, error);
+          }
+        });
+        await Promise.all(deletePromises);
+      }
+
+      // Handle new image uploads
+      if (editImages.length > 0) {
+        try {
+          await fetch("/api/categories/images", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              categoryId: editingCategory.category_id,
+              images: editImages,
+            }),
+          });
+        } catch (imageError) {
+          console.error("Failed to save new category images:", imageError);
+        }
+      }
+
       // Update the category in the list
-      setCategories(
-        categories.map((c) =>
+      setCategories((prev) =>
+        prev.map((c) =>
           c.category_id === editingCategory.category_id
             ? {
                 ...c,
@@ -142,8 +297,29 @@ export function CategoryManagement() {
         )
       );
 
+      // Refresh category images
+      try {
+        const imageResponse = await fetch(
+          `/api/categories/images?categoryId=${editingCategory.category_id}`
+        );
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          setCategoryImages((prev) => ({
+            ...prev,
+            [editingCategory.category_id]: imageData.images || [],
+          }));
+        } else {
+          console.error("Failed to refresh category images: Response not OK");
+        }
+      } catch (error) {
+        console.error("Failed to refresh category images:", error);
+      }
+
       setIsEditingCategory(false);
       setEditingCategory(null);
+      setExistingImages([]);
+      setEditImages([]);
+      setImagesToDelete([]);
 
       toast({
         title: "Success",
@@ -166,7 +342,16 @@ export function CategoryManagement() {
     <Card>
       <CardHeader className="flex justify-between items-center">
         <CardTitle>Category Management</CardTitle>
-        <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+        <Dialog
+          open={isAddingCategory}
+          onOpenChange={(open) => {
+            setIsAddingCategory(open);
+            if (!open) {
+              setNewCategory({ name: "", description: "" });
+              setNewImages([]);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -202,6 +387,12 @@ export function CategoryManagement() {
                   rows={3}
                 />
               </div>
+              <CategoryImageManager
+                key="add-category"
+                onImagesChange={setNewImages}
+                maxImages={3}
+                initialImages={newImages}
+              />
               <Button onClick={handleAddCategory}>Add Category</Button>
             </div>
           </DialogContent>
@@ -215,6 +406,9 @@ export function CategoryManagement() {
             if (!open) {
               setEditingCategory(null);
               setEditCategory({ name: "", description: "" });
+              setExistingImages([]);
+              setEditImages([]);
+              setImagesToDelete([]);
             }
           }}
         >
@@ -247,32 +441,78 @@ export function CategoryManagement() {
                   rows={3}
                 />
               </div>
+              <CategoryImageManager
+                key={`edit-${editingCategory?.category_id || "new"}`}
+                onImagesChange={setEditImages}
+                onImageDelete={handleImageDelete}
+                maxImages={3}
+                initialImages={editImages}
+                existingImages={memoizedExistingImages}
+                imagesToDelete={imagesToDelete}
+                categoryId={editingCategory?.category_id}
+              />
               <Button onClick={handleEditCategory}>Update Category</Button>
             </div>
           </DialogContent>
         </Dialog>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {categories.map((category) => (
-          <Card key={category._uuid || category.category_id} className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-lg">{category.name}</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEditClick(category)}
-                className="flex items-center gap-1"
-              >
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-            </div>
-            <p className="text-sm text-gray-600 mb-2">{category.description}</p>
-            <p className="text-xs text-gray-500">
-              Created: {new Date(category.created_at).toLocaleDateString()}
-            </p>
-          </Card>
-        ))}
+        {categories.map((category) => {
+          const images = categoryImages[category.category_id] || [];
+          const primaryImage = images.find((img) => img.isPrimary) || images[0];
+
+          return (
+            <Card key={category.category_id} className="p-4">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg">{category.name}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditClick(category)}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </Button>
+              </div>
+
+              {/* Category Image */}
+              {primaryImage ? (
+                <div className="mb-3">
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                    <Image
+                      src={primaryImage.url}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                  {images.length > 1 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      +{images.length - 1} more image
+                      {images.length > 2 ? "s" : ""}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-3">
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                    <ImageIcon className="h-12 w-12 text-gray-400" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">No image</p>
+                </div>
+              )}
+
+              <p className="text-sm text-gray-600 mb-2">
+                {category.description}
+              </p>
+              <p className="text-xs text-gray-500">
+                Created: {new Date(category.created_at).toLocaleDateString()}
+              </p>
+            </Card>
+          );
+        })}
       </CardContent>
     </Card>
   );

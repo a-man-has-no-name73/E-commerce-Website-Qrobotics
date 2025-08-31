@@ -260,7 +260,7 @@ export function ProductManagement() {
       // Validate inputs before sending
       const priceValue = parseFloat(editProduct.price);
       const categoryIdValue = parseInt(editProduct.category_id);
-      
+
       if (isNaN(priceValue) || priceValue <= 0) {
         toast({
           title: "Error",
@@ -269,7 +269,7 @@ export function ProductManagement() {
         });
         return;
       }
-      
+
       if (isNaN(categoryIdValue) || categoryIdValue <= 0) {
         toast({
           title: "Error",
@@ -580,7 +580,7 @@ export function ProductManagement() {
       <CardContent className="space-y-4">
         {products.map((product) => (
           <Card
-                        key={product._uuid || product.product_id}
+            key={product._uuid || product.product_id}
             className="p-4 border rounded"
           >
             <div className="flex gap-4">
