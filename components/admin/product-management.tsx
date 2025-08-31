@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ProductImageManager } from "@/components/ui/product-image-manager";
 import {
@@ -481,16 +482,16 @@ export function ProductManagement() {
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={newProduct.description}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={newProduct.description}
+                  onChange={(content) =>
                     setNewProduct({
                       ...newProduct,
-                      description: e.target.value,
+                      description: content,
                     })
                   }
-                  rows={3}
+                  placeholder="Enter product description with formatting..."
+                  className="mt-2"
                 />
               </div>
               <div>
@@ -581,16 +582,16 @@ export function ProductManagement() {
               </div>
               <div>
                 <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editProduct.description}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={editProduct.description}
+                  onChange={(content) =>
                     setEditProduct({
                       ...editProduct,
-                      description: e.target.value,
+                      description: content,
                     })
                   }
-                  rows={3}
+                  placeholder="Enter product description with formatting..."
+                  className="mt-2"
                 />
               </div>
               <div>
@@ -665,9 +666,10 @@ export function ProductManagement() {
               {/* Product Info */}
               <div className="flex-1">
                 <h3 className="font-semibold text-lg">{product.name}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {product.description}
-                </p>
+                <div 
+                  className="text-sm text-gray-600 line-clamp-2 prose prose-sm"
+                  dangerouslySetInnerHTML={{ __html: product.description || "" }}
+                />
                 <div className="flex gap-4 mt-2">
                   <p className="text-sm text-gray-500">
                     Price: ৳{product.price}

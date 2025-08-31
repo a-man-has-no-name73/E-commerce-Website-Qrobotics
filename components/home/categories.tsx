@@ -126,7 +126,10 @@ function CategoryCard({ category }: { category: Category }) {
             </div>
           )}
           <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
-          <p className="text-gray-600 text-sm mb-2">{category.description}</p>
+          <div 
+            className="text-gray-600 text-sm mb-2 prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: category.description || "" }}
+          />
           <p className="text-blue-600 font-medium">View products</p>
         </CardContent>
       </Card>

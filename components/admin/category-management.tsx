@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import {
   Dialog,
   DialogContent,
@@ -437,16 +438,16 @@ export function CategoryManagement() {
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={newCategory.description}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={newCategory.description}
+                  onChange={(content) =>
                     setNewCategory({
                       ...newCategory,
-                      description: e.target.value,
+                      description: content,
                     })
                   }
-                  rows={3}
+                  placeholder="Enter category description with formatting..."
+                  className="mt-2"
                 />
               </div>
               <CategoryImageManager
@@ -491,16 +492,16 @@ export function CategoryManagement() {
               </div>
               <div>
                 <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editCategory.description}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={editCategory.description}
+                  onChange={(content) =>
                     setEditCategory({
                       ...editCategory,
-                      description: e.target.value,
+                      description: content,
                     })
                   }
-                  rows={3}
+                  placeholder="Enter category description with formatting..."
+                  className="mt-2"
                 />
               </div>
               <CategoryImageManager
@@ -601,9 +602,10 @@ export function CategoryManagement() {
                 </div>
               )}
 
-              <p className="text-sm text-gray-600 mb-2">
-                {category.description}
-              </p>
+              <div 
+                className="text-sm text-gray-600 mb-2 prose prose-sm"
+                dangerouslySetInnerHTML={{ __html: category.description || "" }}
+              />
               <p className="text-xs text-gray-500">
                 Created: {new Date(category.created_at).toLocaleDateString()}
               </p>
