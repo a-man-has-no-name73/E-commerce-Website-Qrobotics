@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import RichTextEditor from "@/components/ui/rich-text-editor";
+import { TableLoading, Loading } from "@/components/ui/loading";
 import {
   Dialog,
   DialogContent,
@@ -425,7 +426,16 @@ export function CategoryManagement() {
   };
 
   if (loading)
-    return <div className="flex justify-center p-8">Loading categories...</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Category Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TableLoading rows={6} columns={4} />
+        </CardContent>
+      </Card>
+    );
 
   return (
     <Card>
@@ -489,7 +499,7 @@ export function CategoryManagement() {
               >
                 {isCreatingCategory ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loading variant="spinner" size="sm" className="mr-2" />
                     Creating Category...
                   </>
                 ) : (
@@ -622,7 +632,7 @@ export function CategoryManagement() {
                         >
                           {isDeletingCategory === category.category_id ? (
                             <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              <Loading variant="spinner" size="sm" className="mr-2" />
                               Deleting...
                             </>
                           ) : (

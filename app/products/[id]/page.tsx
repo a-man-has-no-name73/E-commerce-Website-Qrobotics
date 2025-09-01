@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
 import { ProductInfo } from "@/components/products/product-info";
+import { ProductDetailLoading } from "@/components/ui/loading";
 import { useProduct } from "@/hooks/use-products";
 
 export default function ProductDetailPage() {
@@ -16,19 +17,7 @@ export default function ProductDetailPage() {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="animate-pulse">
-                <div className="bg-gray-300 h-96 rounded-lg"></div>
-              </div>
-              <div className="animate-pulse">
-                <div className="bg-gray-300 h-8 rounded mb-4"></div>
-                <div className="bg-gray-300 h-4 rounded mb-2"></div>
-                <div className="bg-gray-300 h-4 rounded mb-2"></div>
-                <div className="bg-gray-300 h-12 rounded mt-4"></div>
-              </div>
-            </div>
-          </div>
+          <ProductDetailLoading />
         </main>
         <Footer />
       </div>

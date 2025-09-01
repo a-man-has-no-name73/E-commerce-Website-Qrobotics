@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProductGrid } from "@/components/products/product-grid";
 import { SearchFilters } from "@/components/search/search-filters";
+import { ProductGridLoading } from "@/components/ui/loading";
 import { useProducts } from "@/hooks/use-products";
 
 export default function SearchPage() {
@@ -80,15 +81,7 @@ export default function SearchPage() {
             </div>
             <div className="lg:col-span-3">
               {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="animate-pulse">
-                      <div className="bg-gray-300 h-48 rounded-lg mb-4"></div>
-                      <div className="bg-gray-300 h-4 rounded mb-2"></div>
-                      <div className="bg-gray-300 h-4 rounded w-2/3"></div>
-                    </div>
-                  ))}
-                </div>
+                <ProductGridLoading count={6} />
               ) : error ? (
                 <div className="text-center py-8">
                   <p className="text-red-600">

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProductGrid } from "@/components/products/product-grid";
+import { ProductGridLoading } from "@/components/ui/loading";
 import { useProducts } from "@/hooks/use-products";
 
 export default function ProductsPage() {
@@ -36,15 +37,7 @@ export default function ProductsPage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 20 }).map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="bg-gray-300 h-48 rounded-lg mb-4"></div>
-                  <div className="bg-gray-300 h-4 rounded mb-2"></div>
-                  <div className="bg-gray-300 h-4 rounded w-2/3"></div>
-                </div>
-              ))}
-            </div>
+            <ProductGridLoading count={productsPerPage} />
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-600">Error loading products: {error}</p>

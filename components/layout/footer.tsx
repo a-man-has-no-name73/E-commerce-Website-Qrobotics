@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -7,7 +7,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-xl font-bold mb-4">Qrobotics</h3>
-            <p className="text-gray-400">We sell high-quality robotics components and electronic parts for automation projects.</p>
+            <p className="text-gray-400">
+                            We sell high-quality robotics components and electronic parts for
+                                          automation projects.
+                                                      </p>
           </div>
 
           <div>
@@ -37,5 +40,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

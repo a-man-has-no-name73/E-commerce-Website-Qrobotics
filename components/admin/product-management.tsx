@@ -12,6 +12,7 @@ import RichTextEditor from "@/components/ui/rich-text-editor";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ProductImageManager } from "@/components/ui/product-image-manager";
 import { SimpleDraggableImageManager } from "@/components/ui/simple-draggable-image-manager";
+import { TableLoading, Loading } from "@/components/ui/loading";
 import {
   Select,
   SelectContent,
@@ -458,7 +459,16 @@ export function ProductManagement() {
   };
 
   if (loading)
-    return <div className="flex justify-center p-8">Loading products...</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TableLoading rows={10} columns={6} />
+        </CardContent>
+      </Card>
+    );
 
   return (
     <Card>
@@ -553,7 +563,7 @@ export function ProductManagement() {
               >
                 {isCreatingProduct ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loading variant="spinner" size="sm" className="mr-2" />
                     Creating Product...
                   </>
                 ) : (
@@ -748,7 +758,7 @@ export function ProductManagement() {
               >
                 {isUpdatingProduct ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loading variant="spinner" size="sm" className="mr-2" />
                     Updating Product...
                   </>
                 ) : (
@@ -835,7 +845,7 @@ export function ProductManagement() {
                     >
                       {isDeletingProduct === product.product_id ? (
                         <>
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                          <Loading variant="spinner" size="sm" className="mr-1" />
                           Deleting...
                         </>
                       ) : (
@@ -864,7 +874,7 @@ export function ProductManagement() {
                       >
                         {isDeletingProduct === product.product_id ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            <Loading variant="spinner" size="sm" className="mr-2" />
                             Deleting...
                           </>
                         ) : (

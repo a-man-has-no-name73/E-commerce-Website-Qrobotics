@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Loading } from "@/components/ui/loading"
 
 interface CheckoutFormProps {
   onSubmit: (data: any) => void
@@ -101,7 +102,14 @@ export function CheckoutForm({ onSubmit, isProcessing }: CheckoutFormProps) {
           </div>
 
           <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
-            {isProcessing ? "Processing..." : "Place Order"}
+            {isProcessing ? (
+              <>
+                <Loading variant="spinner" size="sm" className="mr-2" />
+                Processing...
+              </>
+            ) : (
+              "Place Order"
+            )}
           </Button>
         </form>
       </CardContent>
