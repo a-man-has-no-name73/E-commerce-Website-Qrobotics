@@ -3,12 +3,14 @@
 ## 🧪 How to Test the Loading Components
 
 ### 1. **Test Loading Components Demo Page**
+
 Visit: `http://localhost:3001/test-loading`
 
 This page shows all loading component variants:
+
 - ✅ Spinner variants (small, medium, large, extra large)
 - ✅ Dots animation
-- ✅ Bars animation  
+- ✅ Bars animation
 - ✅ Skeleton placeholders
 - ✅ Button loading states
 - ✅ Product card loading
@@ -18,22 +20,28 @@ This page shows all loading component variants:
 - ✅ Page loading (full screen)
 
 ### 2. **Test Real Application Loading States**
+
 Visit: `http://localhost:3001/products`
 
 I added a 1-second delay to the products API to make the loading states visible:
+
 - ✅ You'll see the ProductGridLoading skeleton while products load
 - ✅ Refresh the page to see it again
 
 Visit: `http://localhost:3001/test-products`
+
 - ✅ This page has a "Reload" button to trigger loading on demand
 - ✅ 2-second delay for easy testing
 
 ### 3. **Test Individual Product Loading**
+
 Visit any product detail page (if you have products):
+
 - ✅ You'll see ProductDetailLoading skeleton
 - ✅ 1-second delay added for visibility
 
 ### 4. **Test Form Loading States**
+
 - ✅ Login page: `http://localhost:3001/login`
 - ✅ Register page: `http://localhost:3001/register`
 - ✅ Checkout page: `http://localhost:3001/checkout`
@@ -41,7 +49,9 @@ Visit any product detail page (if you have products):
 All form submit buttons now show spinner loading states.
 
 ### 5. **Test Admin Loading States**
+
 If you have admin access:
+
 - ✅ Product management shows table loading
 - ✅ Category management shows table loading
 - ✅ All CRUD buttons show loading spinners
@@ -69,7 +79,7 @@ When you're satisfied with the loading components, remove these lines from `hook
 
 ```typescript
 // Remove this line:
-await new Promise(resolve => setTimeout(resolve, 1000));
+await new Promise((resolve) => setTimeout(resolve, 1000));
 ```
 
 The loading components will still work, they'll just be faster (which is good for production!).

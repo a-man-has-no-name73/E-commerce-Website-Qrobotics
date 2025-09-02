@@ -1,17 +1,20 @@
-"use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ProductManagement } from "./product-management"
-import { CategoryManagement } from "./category-management"
-import { OrderManagement } from "./order-management"
-import { AdminStats } from "./admin-stats"
+"use client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductManagement } from "./product-management";
+import { CategoryManagement } from "./category-management";
+import { OrderManagement } from "./order-management";
+import { AdminStats } from "./admin-stats";
+import InventoryManagement from "./inventory-management";
 
 export function AdminDashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600">Manage your store, products, and orders.</p>
+        <p className="text-gray-600">
+          Manage your store, products, and orders.
+        </p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -40,18 +43,9 @@ export function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="inventory">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Inventory Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">Inventory management features coming soon...</p>
-              </CardContent>
-            </Card>
-          </div>
+          <InventoryManagement />
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

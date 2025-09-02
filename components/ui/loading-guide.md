@@ -9,12 +9,14 @@ This guide shows you how to use the various loading components available in the 
 The main `Loading` component supports multiple variants and sizes:
 
 ### Variants
+
 - `spinner` (default) - Rotating spinner
 - `skeleton` - Skeleton placeholder using existing skeleton component
 - `dots` - Animated dots
 - `bars` - Animated bars
 
 ### Sizes
+
 - `sm` - Small (16px)
 - `md` - Medium (32px) - default
 - `lg` - Large (48px)
@@ -42,37 +44,49 @@ The main `Loading` component supports multiple variants and sizes:
 ## Specific Loading Components
 
 ### Product Card Loading
+
 Use this for loading individual product cards:
+
 ```tsx
 <ProductCardLoading />
 ```
 
 ### Product Grid Loading
+
 Use this for loading multiple product cards in a grid:
+
 ```tsx
 <ProductGridLoading count={8} />
 ```
 
 ### Product Detail Loading
+
 Use this for loading product detail pages:
+
 ```tsx
 <ProductDetailLoading />
 ```
 
 ### Table Loading
+
 Use this for loading data tables:
+
 ```tsx
 <TableLoading rows={10} columns={5} />
 ```
 
 ### Form Loading
+
 Use this for loading forms:
+
 ```tsx
 <FormLoading />
 ```
 
 ### Page Loading
+
 Use this for full page loading states:
+
 ```tsx
 <PageLoading text="Loading dashboard..." />
 ```
@@ -97,6 +111,7 @@ For buttons with loading states, use the small spinner variant:
 ## Implementation Examples
 
 ### In Pages
+
 ```tsx
 // app/products/loading.tsx
 import { ProductGridLoading } from "@/components/ui/loading";
@@ -111,6 +126,7 @@ export default function Loading() {
 ```
 
 ### In Components
+
 ```tsx
 function ProductList() {
   const [loading, setLoading] = useState(true);
@@ -125,6 +141,7 @@ function ProductList() {
 ```
 
 ### In Admin Components
+
 ```tsx
 function AdminTable() {
   const [loading, setLoading] = useState(true);
@@ -165,11 +182,11 @@ function AdminTable() {
 All loading components accept standard React props and can be customized with Tailwind CSS classes:
 
 ```tsx
-<Loading 
-  variant="spinner" 
-  size="lg" 
-  className="text-blue-500" 
-  text="Custom loading message..." 
+<Loading
+  variant="spinner"
+  size="lg"
+  className="text-blue-500"
+  text="Custom loading message..."
 />
 ```
 

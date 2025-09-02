@@ -632,7 +632,11 @@ export function CategoryManagement() {
                         >
                           {isDeletingCategory === category.category_id ? (
                             <>
-                              <Loading variant="spinner" size="sm" className="mr-2" />
+                              <Loading
+                                variant="spinner"
+                                size="sm"
+                                className="mr-2"
+                              />
                               Deleting...
                             </>
                           ) : (

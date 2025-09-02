@@ -49,10 +49,8 @@ interface Product {
   price: number;
   category_id: number | null; // ✅ Now nullable
   product_code?: string;
+  quantity: number;
   is_available: boolean;
-  inventory?: {
-    quantity: number;
-  };
   category_name?: string;
   _uuid?: string;
   images?: DatabaseImage[];
@@ -860,6 +858,9 @@ export function ProductManagement() {
                   </p>
                   <p className="text-sm text-gray-500">
                     Available: {product.is_available ? "Yes" : "No"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Quantity: {product.quantity || 0}
                   </p>
                   {product.images && product.images.length > 0 && (
                     <p className="text-sm text-gray-500">

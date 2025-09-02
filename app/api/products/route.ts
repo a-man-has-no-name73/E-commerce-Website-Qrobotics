@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
         description,
         price,
         product_code,
+        quantity,
         category_id,
         is_available,
         created_at,
@@ -49,7 +50,9 @@ export async function GET(request: NextRequest) {
     // Apply pagination
     const from = (page - 1) * limit
     query = query.range(from, from + limit - 1)
-    query = query.order('created_at', { ascending: false })
+    
+    // Order by availability first (available products first), then by created_at
+    query = query.order('is_available', { ascending: false }).order('created_at', { ascending: false })
 
     // Get total count first with a separate query
     let countQuery = supabaseServer
@@ -94,13 +97,6 @@ export async function GET(request: NextRequest) {
           .eq("product_id", product.product_id)
           .order('is_primary', { ascending: false })
 
-        // Get inventory
-        const { data: inventoryData } = await supabaseServer
-          .from("productinventory")
-          .select("quantity")
-          .eq("product_id", product.product_id)
-          .single()
-
         return {
           id: product.product_id,
           name: product.name,
@@ -109,8 +105,9 @@ export async function GET(request: NextRequest) {
           product_code: product.product_code,
           category: (product.categories as any)?.name || 'Unknown',
           category_id: product.category_id,
-          inStock: (inventoryData?.quantity || 0) > 0,
-          stock: inventoryData?.quantity || 0,
+          inStock: (product.quantity || 0) > 0,
+          stock: product.quantity || 0,
+          quantity: product.quantity || 0,
           isAvailable: product.is_available,
           createdAt: product.created_at,
           images: (imagesData || []).map((img: any) => ({

@@ -9,7 +9,7 @@ export default function Loading() {
           <div className="h-4 bg-gray-200 rounded w-96"></div>
         </div>
       </div>
-      
+
       {/* Search filters loading */}
       <div className="flex flex-col lg:flex-row gap-8 mb-8">
         <div className="lg:w-1/4">
@@ -24,7 +24,7 @@ export default function Loading() {
             </div>
           </div>
         </div>
-        
+
         <div className="lg:w-3/4">
           <ProductGridLoading count={8} />
         </div>

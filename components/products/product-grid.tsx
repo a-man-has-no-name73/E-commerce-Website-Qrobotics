@@ -13,6 +13,7 @@ interface Product {
   product_code?: string;
   inStock: boolean;
   stock: number;
+  quantity: number;
   isAvailable: boolean;
   createdAt: string;
   images: Array<{

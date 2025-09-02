@@ -15,6 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         description,
         price,
         product_code,
+        quantity,
         category_id,
         is_available,
         created_at,
@@ -25,7 +26,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         )
       `)
       .eq('product_id', productId)
-      .eq('is_available', true) // Only show available products for customers
       .single()
 
     if (productError || !productData) {
@@ -39,13 +39,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .eq("product_id", productId)
       .order('is_primary', { ascending: false })
 
-    // Get inventory
-    const { data: inventoryData } = await supabaseServer
-      .from("productinventory")
-      .select("quantity")
-      .eq("product_id", productId)
-      .single()
-
     const product = {
       id: productData.product_id,
       name: productData.name,
@@ -54,8 +47,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       product_code: productData.product_code,
       category: (productData.categories as any)?.name || 'Unknown',
       category_id: productData.category_id,
-      inStock: (inventoryData?.quantity || 0) > 0,
-      stock: inventoryData?.quantity || 0,
+      inStock: (productData.quantity || 0) > 0,
+      stock: productData.quantity || 0,
+      quantity: productData.quantity || 0,
       isAvailable: productData.is_available,
       createdAt: productData.created_at,
       images: (imagesData || []).map((img: any) => ({

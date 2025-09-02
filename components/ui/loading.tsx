@@ -9,25 +9,25 @@ interface LoadingProps {
   fullScreen?: boolean;
 }
 
-export function Loading({ 
-  variant = "spinner", 
-  size = "md", 
+export function Loading({
+  variant = "spinner",
+  size = "md",
   className,
   text,
-  fullScreen = false 
+  fullScreen = false,
 }: LoadingProps) {
   const sizeClasses = {
     sm: "w-4 h-4",
-    md: "w-8 h-8", 
+    md: "w-8 h-8",
     lg: "w-12 h-12",
-    xl: "w-16 h-16"
+    xl: "w-16 h-16",
   };
 
   const textSizes = {
     sm: "text-sm",
     md: "text-base",
-    lg: "text-lg", 
-    xl: "text-xl"
+    lg: "text-lg",
+    xl: "text-xl",
   };
 
   const containerClass = cn(
@@ -38,10 +38,12 @@ export function Loading({
   );
 
   const renderSpinner = () => (
-    <div className={cn(
-      "animate-spin rounded-full border-2 border-gray-200 border-t-blue-500", 
-      sizeClasses[size]
-    )} />
+    <div
+      className={cn(
+        "animate-spin rounded-full border-2 border-gray-200 border-t-blue-500",
+        sizeClasses[size]
+      )}
+    />
   );
 
   const renderDots = () => (
@@ -53,11 +55,11 @@ export function Loading({
             "rounded-full bg-blue-500 animate-bounce",
             size === "sm" && "w-1 h-1",
             size === "md" && "w-2 h-2",
-            size === "lg" && "w-3 h-3", 
+            size === "lg" && "w-3 h-3",
             size === "xl" && "w-4 h-4"
           )}
           style={{
-            animationDelay: `${i * 0.1}s`
+            animationDelay: `${i * 0.1}s`,
           }}
         />
       ))}
@@ -77,9 +79,12 @@ export function Loading({
             size === "xl" && "w-3"
           )}
           style={{
-            height: `${(i + 1) * (size === "sm" ? 4 : size === "md" ? 6 : size === "lg" ? 8 : 10)}px`,
+            height: `${
+              (i + 1) *
+              (size === "sm" ? 4 : size === "md" ? 6 : size === "lg" ? 8 : 10)
+            }px`,
             animationDelay: `${i * 0.15}s`,
-            animationDuration: "0.6s"
+            animationDuration: "0.6s",
           }}
         />
       ))}
@@ -156,7 +161,7 @@ export function ProductDetailLoading() {
             ))}
           </div>
         </div>
-        
+
         {/* Product Info Loading */}
         <div className="space-y-4">
           <Skeleton className="w-16 h-6" />
@@ -178,7 +183,13 @@ export function ProductDetailLoading() {
   );
 }
 
-export function TableLoading({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
+export function TableLoading({
+  rows = 5,
+  columns = 4,
+}: {
+  rows?: number;
+  columns?: number;
+}) {
   return (
     <div className="space-y-3">
       {/* Header */}

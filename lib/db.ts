@@ -39,6 +39,7 @@ export interface Product {
   description?: string
   price: number
   product_code?: string
+  quantity: number
   is_available: boolean
   created_by: number
   created_at: string
@@ -152,6 +153,8 @@ class MockDatabase {
       name: "QR-Assembly Pro X1",
       description: "Advanced manufacturing robot with precision control for assembly line operations.",
       price: 24999,
+      product_code: "QR-ASM-X1-001",
+      quantity: 15,
       is_available: true,
       created_by: 1,
       created_at: new Date().toISOString(),
@@ -163,6 +166,8 @@ class MockDatabase {
       name: "QR-Warehouse Navigator",
       description: "Autonomous mobile robot for warehouse operations and material transport.",
       price: 8999,
+      product_code: "QR-WHN-002",
+      quantity: 8,
       is_available: true,
       created_by: 1,
       created_at: new Date().toISOString(),
@@ -187,11 +192,11 @@ class MockDatabase {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.users.find((user) => user.email === email && !user.deleted_at) || null
+    return this.users.find((user) => user.email === email) || null
   }
 
   async getUserById(userId: number): Promise<User | null> {
-    return this.users.find((user) => user.user_id === userId && !user.deleted_at) || null
+    return this.users.find((user) => user.user_id === userId) || null
   }
 
   // Admin methods
@@ -201,7 +206,7 @@ class MockDatabase {
 
   // Category methods
   async getCategories(): Promise<Category[]> {
-    return this.categories.filter((cat) => !cat.deleted_at)
+    return this.categories
   }
 
   async createCategory(categoryData: Omit<Category, "category_id" | "created_at" | "updated_at">): Promise<Category> {
@@ -218,7 +223,7 @@ class MockDatabase {
   async deleteCategory(categoryId: number): Promise<boolean> {
     const index = this.categories.findIndex((cat) => cat.category_id === categoryId)
     if (index !== -1) {
-      this.categories[index] = { ...this.categories[index], deleted_at: new Date().toISOString() }
+      this.categories.splice(index, 1)
       return true
     }
     return false
@@ -226,7 +231,7 @@ class MockDatabase {
 
   // Product methods
   async getProducts(filters?: { category_id?: number; search?: string; is_available?: boolean }): Promise<Product[]> {
-    let products = this.products.filter((product) => !product.deleted_at)
+    let products = this.products
 
     if (filters?.category_id) {
       products = products.filter((product) => product.category_id === filters.category_id)
@@ -253,7 +258,7 @@ class MockDatabase {
   }
 
   async getProductById(productId: number): Promise<Product | null> {
-    const product = this.products.find((product) => product.product_id === productId && !product.deleted_at)
+    const product = this.products.find((product) => product.product_id === productId)
     if (!product) return null
 
     return {
@@ -300,7 +305,7 @@ class MockDatabase {
   async deleteProduct(productId: number): Promise<boolean> {
     const index = this.products.findIndex((product) => product.product_id === productId)
     if (index !== -1) {
-      this.products[index] = { ...this.products[index], deleted_at: new Date().toISOString() }
+      this.products.splice(index, 1)
       return true
     }
     return false
@@ -350,6 +355,50 @@ class MockDatabase {
       return this.productInventory[index]
     }
     return null
+  }
+
+  async updateProductQuantity(productId: number, quantity: number): Promise<Product | null> {
+    const index = this.products.findIndex((product) => product.product_id === productId)
+    if (index !== -1) {
+      this.products[index] = {
+        ...this.products[index],
+        quantity,
+        is_available: quantity > 0,
+        updated_at: new Date().toISOString(),
+      }
+      return this.products[index]
+    }
+    return null
+  }
+
+  async getProductsForInventory(filters?: { 
+    category_id?: number; 
+    search?: string; 
+    product_code?: string 
+  }): Promise<Product[]> {
+    let products = this.products
+
+    if (filters?.category_id) {
+      products = products.filter((product) => product.category_id === filters.category_id)
+    }
+
+    if (filters?.search) {
+      products = products.filter((product) =>
+        product.name.toLowerCase().includes(filters.search!.toLowerCase()) ||
+        product.description?.toLowerCase().includes(filters.search!.toLowerCase())
+      )
+    }
+
+    if (filters?.product_code) {
+      products = products.filter((product) =>
+        product.product_code?.toLowerCase().includes(filters.product_code!.toLowerCase())
+      )
+    }
+
+    return products.map((product) => ({
+      ...product,
+      category_name: this.categories.find((cat) => cat.category_id === product.category_id)?.name,
+    }))
   }
 }
 

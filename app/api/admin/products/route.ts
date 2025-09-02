@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
         description,
         price,
         product_code,
+        quantity,
         category_id,
         is_available,
         created_at,
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: productsError.message }, { status: 500 });
     }
 
-    // Get images and inventory for each product
+    // Get images for each product
     const productsWithDetails = await Promise.all(
       (productsData || []).map(async (product) => {
         // Get images
@@ -39,27 +40,18 @@ export async function GET(request: NextRequest) {
           .eq("product_id", product.product_id)
           .order('serial_number', { ascending: true });
 
-        // Get inventory
-        const { data: inventoryData } = await supabaseServer
-          .from("productinventory")
-          .select("quantity")
-          .eq("product_id", product.product_id)
-          .single();
-
         return {
           product_id: product.product_id, // Keep original field name for admin
           name: product.name,
           description: product.description,
           price: product.price,
           product_code: product.product_code,
+          quantity: product.quantity || 0,
           category_id: product.category_id,
           is_available: product.is_available,
           created_at: product.created_at,
           updated_at: product.updated_at,
           category_name: (product.categories as any)?.name || 'Unknown',
-          inventory: {
-            quantity: inventoryData?.quantity || 0
-          },
           images: (imagesData || []).map((img: any) => ({
             id: img.image_id,
             url: img.image_url,
