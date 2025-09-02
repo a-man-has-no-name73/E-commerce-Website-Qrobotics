@@ -1,5 +1,3 @@
-// Database connection utility (mock implementation for demo)
-// In production, you would use a real database connection like MySQL, PostgreSQL, etc.
 
 export interface User {
   user_id: number
@@ -40,6 +38,7 @@ export interface Product {
   name: string
   description?: string
   price: number
+  product_code?: string
   is_available: boolean
   created_by: number
   created_at: string

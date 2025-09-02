@@ -10,6 +10,7 @@ const productSchema = productZ.object({
   name: productZ.string().min(1),
   description: productZ.string().optional(),
   price: productZ.number(),
+  product_code: productZ.string().min(1, "Product code is required").optional(),
   images: productZ
     .array(
       productZ.object({
@@ -45,13 +46,22 @@ export async function POST(req: Request) {
     );
   }
 
-  const { category_id, name, description, price, images = [] } = parsed.data;
+  const {
+    category_id,
+    name,
+    description,
+    price,
+    product_code,
+    images = [],
+  } = parsed.data;
 
   const created_by = parseInt(adminId);
 
   const { data: productData, error: productError } = await supabaseServer
     .from("products")
-    .insert([{ category_id, name, description, price, created_by }])
+    .insert([
+      { category_id, name, description, price, product_code, created_by },
+    ])
     .select("*")
     .single();
 

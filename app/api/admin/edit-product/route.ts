@@ -9,6 +9,7 @@ const editProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive("Price must be positive"),
   category_id: z.number().positive().nullable(),
+  product_code: z.string().min(1, "Product code is required").optional(),
   images: z.array(z.object({
     image_url: z.string(),
     cloudinary_public_id: z.string(),
@@ -50,6 +51,7 @@ export async function PUT(request: NextRequest) {
         description: validatedData.description,
         price: validatedData.price,
         category_id: validatedData.category_id,
+        product_code: validatedData.product_code,
         updated_at: new Date().toISOString(),
       })
       .eq("product_id", validatedData.id);

@@ -98,6 +98,11 @@ export function FeaturedProducts() {
                       {product.category}
                     </Badge>
                     <h3 className="font-semibold mb-2">{product.name}</h3>
+                    {product.product_code && (
+                      <div className="text-xs text-gray-500 mb-2 font-mono">
+                        {product.product_code}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-xl font-bold text-blue-600">
                         ৳{product.price.toLocaleString()}

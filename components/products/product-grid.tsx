@@ -10,6 +10,7 @@ interface Product {
   price: number;
   category: string;
   category_id: number;
+  product_code?: string;
   inStock: boolean;
   stock: number;
   isAvailable: boolean;
@@ -68,6 +69,11 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {product.category}
                 </Badge>
                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                {product.product_code && (
+                  <div className="text-xs text-gray-500 mb-2 font-mono">
+                    {product.product_code}
+                  </div>
+                )}
                 <div
                   className="text-gray-600 text-sm mb-3 line-clamp-2 prose prose-sm max-w-none"
                   dangerouslySetInnerHTML={{

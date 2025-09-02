@@ -9,6 +9,7 @@ interface Product {
   price: number;
   category: string;
   category_id: number;
+  product_code?: string;
   inStock: boolean;
   stock: number;
   isAvailable: boolean;

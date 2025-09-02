@@ -15,6 +15,7 @@ interface ProductInfoProps {
     price: number;
     category: string;
     category_id: number;
+    product_code?: string;
     inStock: boolean;
     stock: number;
     isAvailable: boolean;
@@ -63,6 +64,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
           {product.category}
         </Badge>
         <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+        {product.product_code && (
+          <div className="mb-3">
+            <span className="text-sm text-gray-600">
+              Product Code:{" "}
+              <span className="font-mono font-medium">
+                {product.product_code}
+              </span>
+            </span>
+          </div>
+        )}
 
         <div className="flex items-center gap-4 mb-4">
           <span className="text-3xl font-bold text-blue-600">

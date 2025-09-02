@@ -48,6 +48,7 @@ interface Product {
   description?: string;
   price: number;
   category_id: number | null; // ✅ Now nullable
+  product_code?: string;
   is_available: boolean;
   inventory?: {
     quantity: number;
@@ -98,6 +99,7 @@ export function ProductManagement() {
     name: "",
     price: "",
     category_id: "none",
+    product_code: "",
     description: "",
     is_available: true,
     images: [] as UploadedImage[],
@@ -106,6 +108,7 @@ export function ProductManagement() {
     name: "",
     price: "",
     category_id: "",
+    product_code: "",
     description: "",
     is_available: true,
     images: [] as UploadedImage[],
@@ -184,6 +187,7 @@ export function ProductManagement() {
         newProduct.category_id !== ""
           ? parseInt(newProduct.category_id)
           : null,
+      product_code: newProduct.product_code?.trim() || null,
       description: newProduct.description?.trim() || "",
       is_available: newProduct.is_available,
       created_by: 1, // Replace with actual admin ID from context/session if available
@@ -233,6 +237,7 @@ export function ProductManagement() {
         name: "",
         price: "",
         category_id: "none",
+        product_code: "",
         description: "",
         is_available: true,
         images: [],
@@ -273,6 +278,7 @@ export function ProductManagement() {
       name: product.name,
       price: String(product.price),
       category_id: product.category_id ? String(product.category_id) : "none",
+      product_code: product.product_code || "",
       description: product.description || "",
       is_available: product.is_available,
       images: [],
@@ -340,6 +346,7 @@ export function ProductManagement() {
         description: editProduct.description?.trim() || "",
         price: priceValue,
         category_id: categoryIdValue,
+        product_code: editProduct.product_code?.trim() || null,
         images: editProduct.images.map((img) => ({
           image_url: img.url,
           cloudinary_public_id: img.publicId,
@@ -374,6 +381,7 @@ export function ProductManagement() {
                   editProduct.category_id && editProduct.category_id !== "none"
                     ? parseInt(editProduct.category_id)
                     : null,
+                product_code: editProduct.product_code || undefined,
                 is_available: editProduct.is_available,
                 // Keep existing images for now, refresh would be better
                 images:
@@ -509,29 +517,45 @@ export function ProductManagement() {
                   />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={newProduct.category_id}
-                  onValueChange={(value) =>
-                    setNewProduct({ ...newProduct, category_id: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Category</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem
-                        key={cat.category_id}
-                        value={String(cat.category_id)}
-                      >
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="product_code">Product Code</Label>
+                  <Input
+                    id="product_code"
+                    placeholder="e.g., QR-001, SKU123 (optional)"
+                    value={newProduct.product_code}
+                    onChange={(e) =>
+                      setNewProduct({
+                        ...newProduct,
+                        product_code: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={newProduct.category_id}
+                    onValueChange={(value) =>
+                      setNewProduct({ ...newProduct, category_id: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Category</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem
+                          key={cat.category_id}
+                          value={String(cat.category_id)}
+                        >
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <Label htmlFor="description">Description</Label>
@@ -586,6 +610,7 @@ export function ProductManagement() {
                 name: "",
                 price: "",
                 category_id: "",
+                product_code: "",
                 description: "",
                 is_available: true,
                 images: [],
@@ -622,29 +647,45 @@ export function ProductManagement() {
                   />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="edit-category">Category</Label>
-                <Select
-                  value={editProduct.category_id}
-                  onValueChange={(value) =>
-                    setEditProduct({ ...editProduct, category_id: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Category</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem
-                        key={cat.category_id}
-                        value={String(cat.category_id)}
-                      >
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-product_code">Product Code</Label>
+                  <Input
+                    id="edit-product_code"
+                    placeholder="e.g., QR-001, SKU123 (optional)"
+                    value={editProduct.product_code}
+                    onChange={(e) =>
+                      setEditProduct({
+                        ...editProduct,
+                        product_code: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-category">Category</Label>
+                  <Select
+                    value={editProduct.category_id}
+                    onValueChange={(value) =>
+                      setEditProduct({ ...editProduct, category_id: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Category</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem
+                          key={cat.category_id}
+                          value={String(cat.category_id)}
+                        >
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <Label htmlFor="edit-description">Description</Label>
@@ -809,6 +850,11 @@ export function ProductManagement() {
                   <p className="text-sm text-gray-500">
                     Price: ৳{product.price}
                   </p>
+                  {product.product_code && (
+                    <p className="text-sm text-gray-500">
+                      Code: {product.product_code}
+                    </p>
+                  )}
                   <p className="text-sm text-gray-500">
                     Category: {product.category_name || "No Category"}
                   </p>
@@ -845,7 +891,11 @@ export function ProductManagement() {
                     >
                       {isDeletingProduct === product.product_id ? (
                         <>
-                          <Loading variant="spinner" size="sm" className="mr-1" />
+                          <Loading
+                            variant="spinner"
+                            size="sm"
+                            className="mr-1"
+                          />
                           Deleting...
                         </>
                       ) : (
@@ -874,7 +924,11 @@ export function ProductManagement() {
                       >
                         {isDeletingProduct === product.product_id ? (
                           <>
-                            <Loading variant="spinner" size="sm" className="mr-2" />
+                            <Loading
+                              variant="spinner"
+                              size="sm"
+                              className="mr-2"
+                            />
                             Deleting...
                           </>
                         ) : (
