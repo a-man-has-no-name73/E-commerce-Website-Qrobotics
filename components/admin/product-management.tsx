@@ -27,7 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -87,6 +87,17 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
 
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [productCodeSearch, setProductCodeSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const itemsPerPage = 12;
+
   // Loading states for operations
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
@@ -118,10 +129,36 @@ export function ProductManagement() {
     fetchCategories();
   }, []);
 
+  // Fetch products when pagination changes
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchProducts();
+    }
+  }, [currentPage]);
+
   const fetchProducts = async () => {
+    setLoading(true);
     try {
-      const response = await fetch("/api/admin/products"); // ✅ Use admin API
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      });
+
+      if (selectedCategory !== "all") {
+        params.append("category", selectedCategory);
+      }
+      if (searchTerm) {
+        params.append("search", searchTerm);
+      }
+      if (productCodeSearch) {
+        params.append("product_code", productCodeSearch);
+      }
+
+      console.log("Fetching products with params:", params.toString());
+      const response = await fetch(`/api/admin/products?${params}`);
       const data = await response.json();
+
+      console.log("API Response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to fetch products");
@@ -133,6 +170,8 @@ export function ProductManagement() {
       }));
 
       setProducts(productsWithUuid);
+      setTotalProducts(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 1);
     } catch (error) {
       toast({
         title: "Error",
@@ -142,6 +181,23 @@ export function ProductManagement() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setProductCodeSearch("");
+    setSelectedCategory("all");
+    setCurrentPage(1);
+  };
+
+  const handleSearch = () => {
+    console.log("Search triggered:", {
+      searchTerm,
+      productCodeSearch,
+      selectedCategory,
+    });
+    setCurrentPage(1); // Reset to first page when searching
+    fetchProducts();
   };
 
   const fetchCategories = async () => {
@@ -808,6 +864,85 @@ export function ProductManagement() {
           </DialogContent>
         </Dialog>
       </CardHeader>
+
+      {/* Search Filters */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="search">Search Products</Label>
+              <Input
+                id="search"
+                placeholder="Search by name or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label htmlFor="productCode">Product Code</Label>
+              <Input
+                id="productCode"
+                placeholder="Search by product code..."
+                value={productCodeSearch}
+                onChange={(e) => setProductCodeSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select
+                value={selectedCategory}
+                onValueChange={(value) => {
+                  setSelectedCategory(value);
+                  setCurrentPage(1);
+                  // Auto-search when category changes
+                  setTimeout(() => fetchProducts(), 100);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.category_id}
+                      value={category.category_id.toString()}
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setProductCodeSearch("");
+                setSelectedCategory("all");
+                setCurrentPage(1);
+                // Auto-search after clearing filters
+                setTimeout(() => fetchProducts(), 100);
+              }}
+            >
+              Clear Filters
+            </Button>
+            <div className="flex gap-2">
+              <Button onClick={handleSearch} disabled={loading}>
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <CardContent className="space-y-4">
         {products.map((product) => (
           <Card
@@ -943,6 +1078,31 @@ export function ProductManagement() {
             </div>
           </Card>
         ))}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage >= totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
