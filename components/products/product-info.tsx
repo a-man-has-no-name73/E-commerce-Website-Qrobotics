@@ -37,12 +37,16 @@ export function ProductInfo({ product }: ProductInfoProps) {
   const { addItem } = useCart();
 
   const handleAddToCart = () => {
+    console.log("handleAddToCart called");
     addItem({
-      id: product.id,
+      product_id: product.id,
       name: product.name,
       price: product.price,
       image: product.images?.[0]?.url || "/placeholder.svg",
       quantity,
+      product_code: product.product_code,
+      description: product.description,
+      is_available: product.isAvailable,
     });
   };
 

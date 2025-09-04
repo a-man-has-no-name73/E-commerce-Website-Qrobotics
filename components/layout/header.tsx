@@ -10,10 +10,9 @@ import { SearchBar } from "./search-bar";
 import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
-  const { items } = useCart();
+  const { totalItems } = useCart();
   const { user, logout } = useAuth();
   const { toast } = useToast();
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
@@ -83,9 +82,9 @@ export function Header() {
             <Link href="/cart" className="relative">
               <Button variant="ghost" size="icon">
                 <ShoppingCart className="h-5 w-5" />
-                {itemCount > 0 && (
+                {totalItems > 0 && (
                   <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {itemCount}
+                    {totalItems}
                   </span>
                 )}
               </Button>

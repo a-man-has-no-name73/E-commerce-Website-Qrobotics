@@ -6,12 +6,22 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "./cart-context";
 
 export function CartItems() {
-  const { items, updateQuantity, removeItem } = useCart();
+  const { items, updateQuantity, removeItem, loading } = useCart();
+
+  if (loading) {
+    return <div className="text-center py-4">Loading cart...</div>;
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">Your cart is empty</div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <Card key={item.id}>
+        <Card key={item.product_id}>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <img
@@ -22,16 +32,27 @@ export function CartItems() {
 
               <div className="flex-1">
                 <h3 className="font-semibold">{item.name}</h3>
+                {item.product_code && (
+                  <p className="text-sm text-gray-600">
+                    Code: {item.product_code}
+                  </p>
+                )}
                 <p className="text-blue-600 font-medium">
                   ৳{item.price.toLocaleString()}
                 </p>
+                {item.is_available === false && (
+                  <p className="text-red-600 text-sm">Out of stock</p>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  disabled={loading}
+                  onClick={() =>
+                    updateQuantity(item.product_id, item.quantity - 1)
+                  }
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -41,7 +62,10 @@ export function CartItems() {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  disabled={loading}
+                  onClick={() =>
+                    updateQuantity(item.product_id, item.quantity + 1)
+                  }
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -54,7 +78,8 @@ export function CartItems() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeItem(item.id)}
+                  disabled={loading}
+                  onClick={() => removeItem(item.product_id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-4 w-4" />
