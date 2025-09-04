@@ -13,6 +13,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phoneNumber?: string;
   role: "user" | "admin";
   adminRole?: string;
 }
@@ -23,6 +24,7 @@ interface AuthContextType {
   adminLogin: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, userData: any) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
   loading: boolean;
 }
 
@@ -185,9 +187,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, login, adminLogin, register, logout, loading }}
+      value={{ user, login, adminLogin, register, logout, updateUser, loading }}
     >
       {children}
     </AuthContext.Provider>

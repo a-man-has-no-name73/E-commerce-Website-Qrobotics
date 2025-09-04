@@ -33,14 +33,14 @@ export async function POST(request: NextRequest) {
     cookieStore.set("qrobotics_user_id", String(user.user_id), {
       httpOnly: true,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax", // Changed from "strict" to "lax"
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     })
     cookieStore.set("qrobotics_role", "user", {
       httpOnly: true,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax", // Changed from "strict" to "lax"
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
     })
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
+        phoneNumber: user.phone_number,
         role: "user",
       },
     })

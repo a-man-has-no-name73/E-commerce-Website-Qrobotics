@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already exists
     const { data: existingUser } = await supabaseServer
-      .from("Users")
+      .from("users")
       .select("user_id")
       .eq("email", email)
       .maybeSingle()

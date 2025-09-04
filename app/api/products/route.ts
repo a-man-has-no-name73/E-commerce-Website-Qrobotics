@@ -125,14 +125,6 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil((count || 0) / limit)
 
-    console.log('Products API Debug:', {
-      page,
-      limit,
-      totalCount: count,
-      totalPages,
-      productsReturned: productsWithImages.length
-    })
-
     return NextResponse.json({ 
       products: productsWithImages,
       pagination: {

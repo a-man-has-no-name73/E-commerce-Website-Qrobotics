@@ -45,7 +45,7 @@ export async function GET() {
       // Get user data from users table
       const { data: userData, error } = await supabaseServer
         .from("users")
-        .select("user_id, email, first_name, last_name, role")
+        .select("user_id, email, first_name, last_name, phone_number")
         .eq("user_id", parseInt(userId))
         .single();
 
@@ -61,7 +61,8 @@ export async function GET() {
         email: userData.email,
         firstName: userData.first_name,
         lastName: userData.last_name,
-        role: userData.role || "user",
+        phoneNumber: userData.phone_number,
+        role: "user", // Set role to "user" since it's from users table
       };
     }
 
